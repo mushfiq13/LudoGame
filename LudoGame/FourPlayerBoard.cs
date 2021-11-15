@@ -20,9 +20,9 @@ namespace LudoGame
             PiecesAtSquare = new Dictionary<SquareNumber, List<IPiece>>();
         }
 
-        public void AddPlayer(BoardLayer layer)
+        public void AddPlayer(string name, BoardLayer layer)
         {
-            Players.Add(new Player(layer)); 
+            Players.Add(new Player(layer));
         }
     }
 }

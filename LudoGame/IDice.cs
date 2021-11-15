@@ -8,7 +8,7 @@ namespace LudoGame
 {
     public interface IDice
     {
-        byte? CurrentValue { get; set; }
+        int? CurrentValue { get; set; }
         void Roll();
     }
 }

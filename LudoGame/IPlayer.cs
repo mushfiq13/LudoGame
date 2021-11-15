@@ -8,7 +8,10 @@ namespace LudoGame
 {
     public interface IPlayer
     {
+        string Name { get; }
         IList<IPiece> Pieces { get; }
         BoardLayer Layer { get; set; }
+        int RollDice(IDice dice);
+        bool IsAllPiecesMatured();
     }
 }

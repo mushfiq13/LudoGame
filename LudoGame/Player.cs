@@ -8,6 +8,7 @@ namespace LudoGame
 {
     public class Player : IPlayer
     {
+        public string Name { get; }
         public IList<IPiece> Pieces { get; }
         public BoardLayer Layer { get; set; }
 
@@ -24,6 +25,21 @@ namespace LudoGame
                 newPiece.IsMatured = false;
                 Pieces.Add(newPiece);
             }
-        }        
+        }
+
+        public int RollDice(IDice dice)
+        {
+            dice.Roll();
+            return dice.CurrentValue.Value;
+        }
+
+        public bool IsAllPiecesMatured()
+        {
+            foreach (var piece in Pieces)
+            {
+                if (!piece.IsMatured) { return false; }
+            }
+            return true;
+        }
     }
 }

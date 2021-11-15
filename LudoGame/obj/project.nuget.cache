@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "5wFd20zv5Bd3RBBGg4vrPSsfwYQfoRK0ceY5w5cloZBnaeMkaewzSor06V8WS85VhoGqAFlzWWrKmQ77YU2SHg==",
+  "dgSpecHash": "H9fgSipCKvmFj97GhALkcv/ZwrVe+S7gnnyQqWQbCUuUVFQrvhs73TP5dB90xyD9pi6+TbEF0fByWtLWerV63A==",
   "success": true,
-  "projectFilePath": "C:\\MyDrive\\LudoGame\\LudoGame.csproj",
+  "projectFilePath": "C:\\MyDrive\\LudoGame\\LudoGame\\LudoGame.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

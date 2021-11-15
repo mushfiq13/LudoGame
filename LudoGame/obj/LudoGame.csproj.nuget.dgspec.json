@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\MyDrive\\LudoGame\\LudoGame.csproj": {}
+    "C:\\MyDrive\\LudoGame\\LudoGame\\LudoGame.csproj": {}
   },
   "projects": {
-    "C:\\MyDrive\\LudoGame\\LudoGame.csproj": {
+    "C:\\MyDrive\\LudoGame\\LudoGame\\LudoGame.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\MyDrive\\LudoGame\\LudoGame.csproj",
+        "projectUniqueName": "C:\\MyDrive\\LudoGame\\LudoGame\\LudoGame.csproj",
         "projectName": "LudoGame",
-        "projectPath": "C:\\MyDrive\\LudoGame\\LudoGame.csproj",
+        "projectPath": "C:\\MyDrive\\LudoGame\\LudoGame\\LudoGame.csproj",
         "packagesPath": "C:\\Users\\mushf\\.nuget\\packages\\",
-        "outputPath": "C:\\MyDrive\\LudoGame\\obj\\",
+        "outputPath": "C:\\MyDrive\\LudoGame\\LudoGame\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\mushf\\AppData\\Roaming\\NuGet\\NuGet.Config",

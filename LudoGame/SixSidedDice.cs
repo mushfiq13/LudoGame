@@ -9,7 +9,7 @@ namespace LudoGame
     public class SixSidedDice : IDice
     {
         private Random _random;
-        public byte? CurrentValue { get; set; }
+        public int? CurrentValue { get; set; }
 
         public SixSidedDice()
         {
@@ -18,7 +18,7 @@ namespace LudoGame
 
         public void Roll()
         {            
-            CurrentValue = ((byte)_random.Next(1, 7));
+            CurrentValue = _random.Next(1, 7);
         }
     }
 }
