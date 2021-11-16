@@ -12,6 +12,12 @@ namespace LudoGame
         IList<IPlayer> Players { get; }
         IPlayer? CurrentPlayer { get; set; }
         IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
-        void AddPlayer(string name, BoardLayer layer);
+        IList<IPlayer> Ranking { get; }
+
+        void AddPlayer(string name, BoardLayer layer);        
+
+        bool IsSafeSpot(SquareSpot? square, HomeColumn? home);
+
+        void RankPlayer(IPlayer player);
     }
 }

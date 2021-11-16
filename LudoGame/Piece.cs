@@ -12,5 +12,22 @@ namespace LudoGame
         public Color Color { get; set; }
         public (SquareSpot?, HomeColumn?) CurrentPosition { get; set; }
         public bool IsMatured { get; set; }
+
+        public bool CanMoveToSquareSpot(int diceValue, SquareSpot currentSpot, SquareSpot endingSpotOfLayer)
+        {
+            if (endingSpotOfLayer == SquareSpot.FiftyFirst)
+            {
+                return (int)currentSpot + diceValue <= (int)endingSpotOfLayer
+                        ? true
+                        : false;
+            }
+
+            if ((int)currentSpot > (int)endingSpotOfLayer || (int)currentSpot + diceValue <= (int)endingSpotOfLayer)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

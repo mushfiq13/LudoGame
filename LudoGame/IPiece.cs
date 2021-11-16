@@ -12,5 +12,7 @@ namespace LudoGame
         Color Color { get; set; }
         (SquareSpot?, HomeColumn?) CurrentPosition { get; set; }
         bool IsMatured { get; set; }
+
+        bool CanMoveToSquareSpot(int diceValue, SquareSpot currentSpot, SquareSpot endingSpotOfLayer);
     }
 }

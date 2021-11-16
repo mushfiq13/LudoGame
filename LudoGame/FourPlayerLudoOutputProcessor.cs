@@ -40,7 +40,7 @@ namespace LudoGame
             }
         }
 
-        public void PossiblePositionStatus(PieceNumber pieceId, SquareSpot? square, HomeColumn? home)
+        public void PrintPiecePossiblePosition(PieceNumber pieceId, SquareSpot? square, HomeColumn? home)
         {
             PrintAsOrdinalNumber((int)pieceId);
 
