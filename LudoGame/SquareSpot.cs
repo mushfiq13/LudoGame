@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LudoGame
 {
-    public enum SquareNumber
+    public enum SquareSpot
     {
         First = 1,
         Second = 2,

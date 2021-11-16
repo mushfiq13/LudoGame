@@ -12,34 +12,35 @@ namespace LudoGame
         public IList<IPiece> Pieces { get; }
         public BoardLayer Layer { get; set; }
 
-        public Player(BoardLayer layer)
+        public Player(string name, BoardLayer layer, IList<IPiece> pieces)
         {
-            Pieces = new List<IPiece>();
-            Layer = layer;            
-
-            for (var pieceId = 1; pieceId <= 4; pieceId++)
-            {
-                var newPiece = new Piece();
-                newPiece.Id = (PieceNumber)pieceId;
-                newPiece.Color = (Color)(int)layer;
-                newPiece.IsMatured = false;
-                Pieces.Add(newPiece);
-            }
+            Name = name;
+            Layer = layer;
+            Pieces = pieces;
         }
 
-        public int RollDice(IDice dice)
-        {
-            dice.Roll();
-            return dice.CurrentValue.Value;
-        }
+        public void RollDice(IDice dice) => dice.Roll();
 
-        public bool IsAllPiecesMatured()
+        public bool IsAllPiecesMatured() =>
+            Pieces.Where(piece => piece.IsMatured == false).Any() ? false : true;
+
+        public bool CanPlay() => IsAllPiecesMatured() ? false : true;
+        
+        public void MovePiece(IPiece piece, SquareSpot? square, HomeColumn? home)
         {
-            foreach (var piece in Pieces)
+            if (square.HasValue)
             {
-                if (!piece.IsMatured) { return false; }
+                piece.CurrentPosition = (square.Value, null);
             }
-            return true;
+            else if (home.HasValue)
+            {
+                piece.CurrentPosition = (null, home.Value);
+                if (piece.CurrentPosition.Item2 == HomeColumn.Sixth)
+                {
+                    piece.CurrentPosition = (null, null);
+                    piece.IsMatured = true;
+                }
+            }
         }
     }
 }

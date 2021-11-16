@@ -10,7 +10,7 @@ namespace LudoGame
     {
         PieceNumber Id { get; set; }
         Color Color { get; set; }
-        (SquareNumber?, HomeColumn?) CurrentPosition { get; set; }
+        (SquareSpot?, HomeColumn?) CurrentPosition { get; set; }
         bool IsMatured { get; set; }
     }
 }

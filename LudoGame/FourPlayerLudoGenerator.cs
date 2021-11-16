@@ -17,93 +17,57 @@ namespace LudoGame
             inputGenerator = new FourPlayerLudoInputGenerator();
         }
 
-        public void SetInitialPlayer(IBoard fourPlayerBoard, IPlayer getPlayer)
-        {
-            fourPlayerBoard.CurrentPlayer = getPlayer;
-        }
+        public void SetInitialPlayer(IBoard board, IPlayer player) => board.CurrentPlayer = player;
 
-        public void PlayGame(IBoard fourPlayerBoard)
+        public bool StartGame(IBoard board) =>        
+            board.Players.Where(player => player.CanPlay() == true).Count() >= 2;
+        
+        public void PlayGame(IBoard board)
         {            
-            for (int i = 0; i < 4; ++i)
-            {
-                if (!PlayerCanPlay(fourPlayerBoard.Players[i]))
-                {
-                    outputProcessor.PlayerUnAvailable();
-                    return;
-                }
-            }
+            SetInitialPlayer(board, board.Players[(int)BoardLayer.First - 1]);
 
-            if (fourPlayerBoard.CurrentPlayer == null)
-            {
-                SetInitialPlayer(fourPlayerBoard, fourPlayerBoard.Players[(int)BoardLayer.First - 1]);
-            }
+            if (board.CurrentPlayer == null) return;
 
-            while (IsPlayerAvailable(fourPlayerBoard))
+            while (!PlayersRanked(board))
             {
-                IPlayer? currentPlayer = fourPlayerBoard.CurrentPlayer;
+                IPlayer currentPlayer = board.CurrentPlayer;
                 outputProcessor.PlayerStatus(currentPlayer);
 
-                if (PlayerCanPlay(currentPlayer))
+                if (currentPlayer.CanPlay())
                 {
-                    fourPlayerBoard.Dice.Roll();
-                    outputProcessor.DiceValue(fourPlayerBoard.Dice.CurrentValue);
-                    MoveAPiece(fourPlayerBoard);
+                    currentPlayer.RollDice(board.Dice);                    
+                    outputProcessor.DiceValue(board.Dice.CurrentValue.Value);
+                    MoveAPiece(board);
                 }
-                                
-                TurnPlayer(fourPlayerBoard);
+                
+                TurnPlayer(board);
             }
         }
 
-        public bool IsPlayerAvailable(IBoard fourPlayerBoard)
-        {
-            for (var i = 0; i < 4; ++i)
-            {
-                if (PlayerCanPlay(fourPlayerBoard.Players[i]))
-                {                    
-                    return true;
-                }
-            }
-            return false;
-        }
+        public bool PlayersRanked(IBoard board) =>
+            board.Players.Where(player => player.CanPlay() == true).Any() ? false : true;        
 
-        private bool PlayerCanPlay(IPlayer? player)
-        {
-            for (int i = 0; player != null && i < 4; ++i)
-            {
-                if (!player.Pieces[i].IsMatured)
-                {
-                    return true;
-                }                
-            }
-            return false;
-        }
-
-        private bool TurnPlayer(IBoard fourPlayerBoard)
+        private bool TurnPlayer(IBoard board)
         {            
-            for (int i = 0; fourPlayerBoard.CurrentPlayer != null && i < 4; ++i)
+            for (var i = 0; board.CurrentPlayer != null && i < board.Players.Count; ++i)
             {                
-                if (GetColor(fourPlayerBoard.CurrentPlayer) == GetColor(fourPlayerBoard.Players[i]))
+                if (board.CurrentPlayer.Layer == board.Players[i].Layer)
                 {
-                    fourPlayerBoard.CurrentPlayer = fourPlayerBoard.Players[(i + 1) % 4];
+                    board.CurrentPlayer = board.Players[(i + 1) % 4];
                     return true;
                 }
             }
             return false;
-        }
+        }        
 
-        private Color GetColor(IPlayer player)
+        private bool MoveAPiece(IBoard board)
         {
-            return (Color)((int)player.Layer);
-        }
-
-        private bool MoveAPiece(IBoard fourPlayerBoard)
-        {
-            if (fourPlayerBoard.CurrentPlayer == null || fourPlayerBoard.Dice.CurrentValue == null)
+            if (board.CurrentPlayer == null || board.Dice.CurrentValue == null)
             {
                 return false;
             }
 
-            var possiblePositions = GetPossiblePositions(fourPlayerBoard.CurrentPlayer, fourPlayerBoard.Dice.CurrentValue.Value);                        
+            var possiblePositions = GetPossiblePositions(board.CurrentPlayer, board.Dice.CurrentValue.Value);                        
             if (!AnyPieceCanMove(possiblePositions))
             {
                 return false;
@@ -115,78 +79,60 @@ namespace LudoGame
             }
 
             var option = ChoosePiece(possiblePositions);
-            IPiece piece = fourPlayerBoard.CurrentPlayer.Pieces[option];
-            var square = possiblePositions[option].Item2;
-            var home = possiblePositions[option].Item3;
+            IPiece piece = board.CurrentPlayer.Pieces[option];
+            
+            if (piece.CurrentPosition.Item1.HasValue)
+            {
+                board.PiecesAtSquare.Remove(piece.CurrentPosition.Item1.Value, piece);
+            }
+
+            board.CurrentPlayer.MovePiece(piece, possiblePositions[option].Item2, possiblePositions[option].Item3);
 
             if (piece.CurrentPosition.Item1.HasValue)
             {
-                fourPlayerBoard.PiecesAtSquare.Remove(piece.CurrentPosition.Item1.Value, piece);
-            }
-
-            if (square.HasValue)
-            {
-                fourPlayerBoard.PiecesAtSquare.Add(square.Value, piece);
-                piece.CurrentPosition = (square.Value, null);
-            }
-            else
-            {
-                piece.CurrentPosition = (null, home.Value);
-                if (piece.CurrentPosition.Item2 == HomeColumn.Sixth)
-                {
-                    piece.CurrentPosition = (null, null);
-                    piece.IsMatured = true;
-                }
+                board.PiecesAtSquare.Add(piece.CurrentPosition.Item1.Value, piece);
             }
 
             return true;
         }
 
-        private int ChoosePiece(List<(PieceNumber, SquareNumber?, HomeColumn?)> piecesPosition)
+        private int ChoosePiece(IList<(PieceNumber, SquareSpot?, HomeColumn?)> piecesPosition)
         {
             int option;
             do
             {
-                option = inputGenerator.ChoosePiece();
-                --option;
+                option = inputGenerator.ChoosePiece() - 1;
             } while (option < 0 || option > 3 ||
                     (!piecesPosition[option].Item2.HasValue && !piecesPosition[option].Item3.HasValue));
 
             return option;
         }
 
-        private bool AnyPieceCanMove(List<(PieceNumber, SquareNumber?, HomeColumn?)> piecesPosition)
-        {
-            foreach (var value in piecesPosition)
-            {                
-                if (value.Item2.HasValue || value.Item3.HasValue)
-                    return true;
-            }
-            return false;
-        }
+        private bool AnyPieceCanMove(IList<(PieceNumber, SquareSpot?, HomeColumn?)> piecesPosition) =>
+            piecesPosition.Where(position => (position.Item2.HasValue || position.Item3.HasValue) == true).Any();        
 
-        private List<(PieceNumber, SquareNumber?, HomeColumn?)> GetPossiblePositions(IPlayer player, byte diceValue)
+        private IList<(PieceNumber, SquareSpot?, HomeColumn?)> GetPossiblePositions(IPlayer player, int diceValue)
         {
-            var possiblePositions = new List<(PieceNumber, SquareNumber?, HomeColumn?)>();
+            var possiblePositions = new List<(PieceNumber, SquareSpot?, HomeColumn?)>();
 
             for (var i = 0; i < 4; ++i)
             {
                 IPiece piece = player.Pieces[i];
-                (SquareNumber?, HomeColumn?) toPosition = (null, null);
+                (SquareSpot?, HomeColumn?) toPosition = (null, null);
                 BoardLayer playerLayer = (BoardLayer)((int)piece.Color);
                 switch (playerLayer)
                 {
                     case BoardLayer.First:
-                        toPosition = GetPosition(piece, diceValue, SquareNumber.First, SquareNumber.FiftyFirst);
+                        toPosition = GetPosition(piece, diceValue, SquareSpot.First, SquareSpot.FiftyFirst);
                         break;
                     case BoardLayer.Second:
-                        toPosition = GetPosition(piece, diceValue, SquareNumber.Fourteenth, SquareNumber.Twelfth);
+                        toPosition = GetPosition(piece, diceValue, SquareSpot.Fourteenth, SquareSpot.Twelfth);
                         break;
                     case BoardLayer.Third:
-                        toPosition = GetPosition(piece, diceValue, SquareNumber.TwentySeventh, SquareNumber.TwentyFifth);
+                        toPosition = GetPosition(piece, diceValue, SquareSpot.TwentySeventh, SquareSpot.TwentyFifth);
                         break;
                     case BoardLayer.Fourth:
-                        toPosition = GetPosition(piece, diceValue, SquareNumber.Fortieth, SquareNumber.ThirtyEighth);
+                        toPosition = GetPosition(piece, diceValue, SquareSpot.Fortieth, SquareSpot.ThirtyEighth);
                         break;
                 }
                 
@@ -196,7 +142,7 @@ namespace LudoGame
             return possiblePositions;
         }
         
-        private (SquareNumber?, HomeColumn?) GetPosition(IPiece piece, byte diceValue, SquareNumber startingSquareOfLayer, SquareNumber endingSquareOfLayer)
+        private (SquareSpot?, HomeColumn?) GetPosition(IPiece piece, int diceValue, SquareSpot startingSquareOfLayer, SquareSpot endingSquareOfLayer)
         {
             if (piece.IsMatured) return (null, null);
 
@@ -221,18 +167,18 @@ namespace LudoGame
             
             if (toSquare.HasValue && !toHome.HasValue)
             {
-                toSquare = toSquare.Value / ((int)SquareNumber.FiftySecond + 1) + toSquare.Value % ((int)SquareNumber.FiftySecond + 1);
+                toSquare = toSquare.Value / ((int)SquareSpot.FiftySecond + 1) + toSquare.Value % ((int)SquareSpot.FiftySecond + 1);
                 return PieceCanMoveToSquare(diceValue, endingSquareOfLayer, piece.CurrentPosition.Item1.Value)
-                        ? ((SquareNumber)toSquare, null)
+                        ? ((SquareSpot)toSquare, null)
                         : (null, (HomeColumn)(toSquare - (int)endingSquareOfLayer));
             }
 
             return (null, null);
         }
 
-        private bool PieceCanMoveToSquare(byte diceValue, SquareNumber endingSquareOfLayer, SquareNumber currentSquare)
+        private bool PieceCanMoveToSquare(int diceValue, SquareSpot endingSquareOfLayer, SquareSpot currentSquare)
         {
-            if (endingSquareOfLayer == SquareNumber.FiftyFirst)
+            if (endingSquareOfLayer == SquareSpot.FiftyFirst)
             {
                 return (int)currentSquare + diceValue <= (int)endingSquareOfLayer
                         ? true

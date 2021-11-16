@@ -11,7 +11,9 @@ namespace LudoGame
         string Name { get; }
         IList<IPiece> Pieces { get; }
         BoardLayer Layer { get; set; }
-        int RollDice(IDice dice);
+        void RollDice(IDice dice);
         bool IsAllPiecesMatured();
+        bool CanPlay();
+        void MovePiece(IPiece piece, SquareSpot? squareNumber, HomeColumn? homeColumn);
     }
 }

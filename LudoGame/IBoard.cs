@@ -11,7 +11,7 @@ namespace LudoGame
         IDice Dice { get; }
         IList<IPlayer> Players { get; }
         IPlayer? CurrentPlayer { get; set; }
-        IDictionary<SquareNumber, List<IPiece>> PiecesAtSquare { get; }
-        void AddPlayer(BoardLayer layer);
+        IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
+        void AddPlayer(string name, BoardLayer layer);
     }
 }

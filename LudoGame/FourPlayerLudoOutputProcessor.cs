@@ -40,7 +40,7 @@ namespace LudoGame
             }
         }
 
-        public void PossiblePositionStatus(PieceNumber pieceId, SquareNumber? square, HomeColumn? home)
+        public void PossiblePositionStatus(PieceNumber pieceId, SquareSpot? square, HomeColumn? home)
         {
             PrintAsOrdinalNumber((int)pieceId);
 
@@ -82,7 +82,7 @@ namespace LudoGame
             Console.WriteLine("Player UnAvailable!");
         }
 
-        public void DiceValue(byte? diceValue)
+        public void DiceValue(int? diceValue)
         {
             Console.WriteLine($"Dice value is {diceValue}");
         }

@@ -8,17 +8,14 @@ namespace LudoGame
         static void Main(string[] args)
         {
             IBoard fourPlayerBoard = new FourPlayerBoard();
-            fourPlayerBoard.AddPlayer(BoardLayer.First);
-            fourPlayerBoard.AddPlayer(BoardLayer.Second);
-            fourPlayerBoard.AddPlayer(BoardLayer.Third);
-            fourPlayerBoard.AddPlayer(BoardLayer.Fourth);
+            fourPlayerBoard.AddPlayer("A", BoardLayer.First);
+            fourPlayerBoard.AddPlayer("B", BoardLayer.Second);
+            fourPlayerBoard.AddPlayer("C", BoardLayer.Third);
+            fourPlayerBoard.AddPlayer("D", BoardLayer.Fourth);
 
             IGenerator generator = new FourPlayerLudoGenerator();
-            if (fourPlayerBoard.Players[3] != null)
-            {
-                generator.SetInitialPlayer(fourPlayerBoard, fourPlayerBoard.Players[3]);
-            }
-            generator.PlayGame(fourPlayerBoard);
+            if (generator.StartGame(fourPlayerBoard))
+                generator.PlayGame(fourPlayerBoard);
         }                              
     }
 }
