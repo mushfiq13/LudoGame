@@ -1,4 +1,5 @@
-# LudoGame
+LudoGame
+========
 Requirements:
 ● A ludo game can be started with 2 or more players.
 ● At the start of a game, each player is assigned 4 pieces of particular color.
