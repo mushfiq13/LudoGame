@@ -12,5 +12,6 @@ Requirements:
 1. For a dice number, player must move a piece if possible.
 1. Unlocking a piece, it will place at first location of layer.
 1. Piece can move clock-wise.
-1. When a player moves his/her piece, it progresses the amount of steps of the number.● When a piece will be placed at home-triangle, it gets mature.
+1. When a player moves his/her piece, it progresses the amount of steps of the number.
+1. When a piece will be placed at home-triangle, it gets mature.
 1. When a player pieces will be at home-triangle, he will be ranked.
