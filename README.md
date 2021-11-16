@@ -2,6 +2,7 @@ LudoGame
 ========
 
 Requirements:
+
 ● At least 2 Players required.
 ● Each player is assigned 4 pieces of particular color.
 ● Dice has 6 or more sides.
