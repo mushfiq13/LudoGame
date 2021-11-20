@@ -29,5 +29,10 @@ namespace LudoGame
 
             return false;
         }
+
+        public void Kill()
+        {
+
+        }
     }
 }

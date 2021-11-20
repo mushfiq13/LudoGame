@@ -24,8 +24,13 @@ namespace LudoGame
 
         public void AddPlayer(string name, BoardLayer layer)
         {
+            Players.Add(new Player(name, layer, CreatePieces(layer)));
+        }
+        
+        private IList<IPiece> CreatePieces(BoardLayer layer)
+        {
             IList<IPiece> pieces = new List<IPiece>();
-            
+
             for (var pieceId = 1; pieceId <= 4; ++pieceId)
             {
                 var newPiece = new Piece();
@@ -35,40 +40,37 @@ namespace LudoGame
                 pieces.Add(newPiece);
             }
 
-            Players.Add(new Player(name, layer, pieces));
-        }        
+            return pieces;
+        }
 
-        public bool IsSafeSpot(SquareSpot? square, HomeColumn? home)
-        {
-            if (square.HasValue && home.HasValue)
-                throw new ArgumentException("A piece can not be placed at Square-spot and Home-column at a time.");
-
-            if (square.HasValue)
+        public bool IsSafeSpot(SquareSpot? square)
+        {            
+            if (!square.HasValue) return false;
+            
+            switch ((PieceSafePosition)((int)square.Value))
             {
-                switch ((PieceSafePosition)((int)square.Value))
-                {
-                    case PieceSafePosition.First:
-                    case PieceSafePosition.Tenth:
-                    case PieceSafePosition.Fourteenth:
-                    case PieceSafePosition.TwentyThird:
-                    case PieceSafePosition.TwentySeventh:
-                    case PieceSafePosition.ThirtySixth:
-                    case PieceSafePosition.Fortieth:
-                    case PieceSafePosition.FourtyNineth:
-                        return true;
-                }
+                case PieceSafePosition.First:
+                case PieceSafePosition.Tenth:
+                case PieceSafePosition.Fourteenth:
+                case PieceSafePosition.TwentyThird:
+                case PieceSafePosition.TwentySeventh:
+                case PieceSafePosition.ThirtySixth:
+                case PieceSafePosition.Fortieth:
+                case PieceSafePosition.FourtyNineth:
+                    return true;
             }
+
             return false;
         }
 
         public void RankPlayer(IPlayer player) => Ranking.Add(player);
 
-        public bool SpotIsBlock(SquareSpot spot)
-        {
-            foreach (var piece in PiecesAtSquare[spot])
-            {
+        //public bool SpotIsBlock(SquareSpot spot)
+        //{
+        //    foreach (var piece in PiecesAtSquare[spot])
+        //    {
 
-            }
-        }
+        //    }
+        //}
     }
 }

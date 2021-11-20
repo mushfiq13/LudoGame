@@ -30,12 +30,11 @@ namespace LudoGame
 
             while (!PlayersRanked(board))
             {
-                IPlayer currentPlayer = board.CurrentPlayer;
-                outputProcessor.PlayerStatus(currentPlayer);
+                outputProcessor.PlayerStatus(board.CurrentPlayer);
 
-                if (currentPlayer.CanPlay())
+                if (board.CurrentPlayer.CanPlay())
                 {
-                    currentPlayer.RollDice(board.Dice);                    
+                    board.CurrentPlayer.RollDice(board.Dice);                    
                     outputProcessor.DiceValue(board.Dice.CurrentValue.Value);
                     MoveAPiece(board);
                 }
@@ -50,13 +49,12 @@ namespace LudoGame
         private bool TurnPlayer(IBoard board)
         {            
             for (var i = 0; board.CurrentPlayer != null && i < board.Players.Count; ++i)
-            {                
-                if (board.CurrentPlayer.Layer == board.Players[i].Layer)
-                {
-                    board.CurrentPlayer = board.Players[(i + 1) % 4];
-                    return true;
-                }
+            {
+                if (board.CurrentPlayer.Layer != board.Players[i].Layer) continue;
+                board.CurrentPlayer = board.Players[(i + 1) % 4];
+                return true;
             }
+
             return false;
         }        
 
@@ -68,32 +66,52 @@ namespace LudoGame
             }
 
             var piecesNewPosition = GetPiecesNextPossiblePosition(board.CurrentPlayer, board.Dice.CurrentValue.Value);                        
+            
             if (!AnyPieceCanMove(piecesNewPosition))
             {
                 return false;
             }
 
+            PrintPiecePossiblePosition(piecesNewPosition);            
+
+            var option = ChoosePiece(piecesNewPosition);
+            IPiece piece = board.CurrentPlayer.Pieces[option];
+
+            RemovePiece(board, piece);
+            board.CurrentPlayer.MovePiece(piece, piecesNewPosition[option].Item2, piecesNewPosition[option].Item3);
+            AddPiece(board, piece);
+
+            return true;
+        }
+        
+        private bool RemovePiece(IBoard board, IPiece piece)
+        {
+            if (piece.CurrentPosition.Item1.HasValue)
+            {
+                board.PiecesAtSquare.Remove(piece.CurrentPosition.Item1.Value, piece);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool AddPiece(IBoard board, IPiece piece)
+        {
+            if (piece.CurrentPosition.Item1.HasValue)
+            {
+                board.PiecesAtSquare.Add(piece.CurrentPosition.Item1.Value, piece);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void PrintPiecePossiblePosition(IList<(PieceNumber, SquareSpot?, HomeColumn?)> piecesNewPosition)
+        {
             foreach (var value in piecesNewPosition)
             {
                 outputProcessor.PrintPiecePossiblePosition(value.Item1, value.Item2, value.Item3);
             }
-
-            var option = ChoosePiece(piecesNewPosition);
-            IPiece piece = board.CurrentPlayer.Pieces[option];
-            
-            if (piece.CurrentPosition.Item1.HasValue)
-            {
-                board.PiecesAtSquare.Remove(piece.CurrentPosition.Item1.Value, piece);
-            }
-
-            board.CurrentPlayer.MovePiece(piece, piecesNewPosition[option].Item2, piecesNewPosition[option].Item3);
-
-            if (piece.CurrentPosition.Item1.HasValue)
-            {
-                board.PiecesAtSquare.Add(piece.CurrentPosition.Item1.Value, piece);
-            }
-
-            return true;
         }
 
         private int ChoosePiece(IList<(PieceNumber, SquareSpot?, HomeColumn?)> piecesPosition)
