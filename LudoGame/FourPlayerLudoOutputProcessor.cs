@@ -42,17 +42,19 @@ namespace LudoGame
 
         public void PrintPiecePossiblePosition<T>(IList<PieceNumber> pieceId, T? value)
         {
-            if (typeof(T).Equals(typeof(SquareSpot)))
+            Console.Write($"{string.Join(", ", pieceId)} piece(s) can ");
+
+            if (value != null && value.GetType() == typeof(SquareSpot))
             {
-                Console.WriteLine($"{string.Join(", ", pieceId)} piece(s) can be placed at {value} square");
+                Console.WriteLine($"be placed at {value} square");
             }
-            else if (typeof(T).Equals(typeof(HomeColumn)))
+            else if (value != null && value.GetType() == typeof(HomeColumn))
             {
-                Console.WriteLine($"{string.Join(", ", pieceId)} piece(s) can be placed at {value} home-column");
+                Console.WriteLine($"be placed at {value} home-column");
             }
             else
             {
-                Console.WriteLine($"{string.Join(", ", pieceId)} piece(s) can not move!");
+                Console.WriteLine($"not move!");
             }
         }
 

@@ -63,12 +63,12 @@ namespace LudoGame
                 return false;
             }
 
-            var possiblePosition = GetPiecesNextPossiblePosition(Board.CurrentPlayer, Board.Dice.CurrentValue.Value);            
+            var possiblePosition = GetPiecesNextPossiblePosition(Board.CurrentPlayer, Board.Dice.CurrentValue.Value);             
 
             if (!AnyPieceCanMove(possiblePosition))
             {
                 return false;
-            }
+            }            
 
             var option = ChoosePiece(possiblePosition);
             var pieces = possiblePosition[option];
@@ -132,7 +132,8 @@ namespace LudoGame
             int option;
 
             do { option = inputGenerator.ChoosePiece() - 1; }
-            while (option < 0 || option >= possiblePosition.Count);
+            while (option < 0 || option >= possiblePosition.Count ||
+                    (!possiblePosition[option].Item2.HasValue && !possiblePosition[option].Item3.HasValue));
 
             return option;
         }
@@ -151,7 +152,7 @@ namespace LudoGame
                 
                 if (pieceFlags.ContainsKey(piece.Id) && pieceFlags[piece.Id]) continue;
 
-                var selectedPieces = GetBlockedPiecesOrDefault(piece, diceValue);
+                var selectedPieces = GetDoublePiecesOrDefault(piece, diceValue);
                 possiblePosition.Add(selectedPieces);
                 
                 foreach (var p in selectedPieces.Item1)
@@ -161,42 +162,35 @@ namespace LudoGame
             return possiblePosition;
         }
 
-        private (IList<IPiece>, SquareSpot?, HomeColumn?) GetBlockedPiecesOrDefault(IPiece selectedPiece, int diceValue)
+        private (IList<IPiece>, SquareSpot?, HomeColumn?) GetDoublePiecesOrDefault(IPiece selectedPiece, int diceValue)
         {
-            (IPiece?, IPiece?) nextPieces = (selectedPiece, null);
+            (SquareSpot?, HomeColumn?) position;
 
-            if (selectedPiece.CurrentSpot.HasValue && diceValue % 2 == 0)
+            if (selectedPiece.CurrentSpot.HasValue)
             {
-                var blockedPieces = Board.SpotHasDoublePiece(selectedPiece.CurrentSpot.Value);
-                if (blockedPieces != null && blockedPieces.Value.Item1.Color == selectedPiece.Color)
+                var doublePieces = Board.SpotHasDoublePiece(selectedPiece.CurrentSpot.Value);
+                if (doublePieces != null && doublePieces.Value.Item1.Color == selectedPiece.Color)
                 {
-                    nextPieces = (blockedPieces.Value.Item1, blockedPieces.Value.Item2);
+                    if ((diceValue & 1) == 1)
+                        return (new List<IPiece> { doublePieces.Value.Item1, doublePieces.Value.Item2 }, null, null);
+
+                    position = GetPosition(doublePieces.Value.Item1, diceValue / 2);
+                    return (new List<IPiece> { doublePieces.Value.Item1, doublePieces.Value.Item2 }, position.Item1, position.Item2);
                 }
             }
 
-            (SquareSpot?, HomeColumn?) position;
+            position = GetPosition(selectedPiece, diceValue);
 
-            if (nextPieces.Item2 != null)
+            if (!IsPathValidForSinglePiece((selectedPiece.CurrentSpot, selectedPiece.CurrentHome),
+                                            (position.Item1, position.Item2), selectedPiece))
             {
-                position = GetPosition(nextPieces.Item1, diceValue / 2);
-            }
-            else
-            {
-                position = GetPosition(nextPieces.Item1, diceValue);
+                return (new List<IPiece> { selectedPiece }, null, null);
             }
 
-            if (!IsPathValid((selectedPiece.CurrentSpot, selectedPiece.CurrentHome),
-                            (position.Item1, position.Item2), selectedPiece))
-            {
-                return (new List<IPiece>(), null, null);
-            }
-            
-            return nextPieces.Item2 == null
-                   ? (new List<IPiece> { nextPieces.Item1 }, position.Item1, position.Item2)
-                   : (new List<IPiece> { nextPieces.Item1, nextPieces.Item2 }, position.Item1, position.Item2);
+            return (new List<IPiece> { selectedPiece }, position.Item1, position.Item2);
         }
 
-        private bool IsPathValid((SquareSpot?, HomeColumn?) begin, (SquareSpot?, HomeColumn?) end, IPiece piece)
+        private bool IsPathValidForSinglePiece((SquareSpot?, HomeColumn?) begin, (SquareSpot?, HomeColumn?) end, IPiece piece)
         {
             // piece is at inside layer...
             if (!begin.Item1.HasValue && !begin.Item2.HasValue && end.Item1.HasValue) return true;

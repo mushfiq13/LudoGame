@@ -13,7 +13,6 @@ namespace LudoGame
         public IPlayer? CurrentPlayer { get; set; }
         public IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
         public IList<IPlayer> Ranking { get; private set; }
-        
 
         public FourPlayerBoard()
         {
