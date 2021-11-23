@@ -16,8 +16,11 @@ namespace LudoGame
 
         void AddPlayer(string name, BoardLayer layer);        
 
-        bool IsSafeSpot(SquareSpot? square);
+        bool IsSafeSpot(SquareSpot selectedSpot);
+        bool IsTheSpotBlock(SquareSpot selectedSpot);
+        (IPiece, IPiece)? SpotHasDoublePiece(SquareSpot selectedSpot);
 
         void RankPlayer(IPlayer player);
+        bool PlayersRanked();
     }
 }

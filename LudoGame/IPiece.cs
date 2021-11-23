@@ -8,11 +8,19 @@ namespace LudoGame
 {
     public interface IPiece
     {
-        PieceNumber Id { get; set; }
-        Color Color { get; set; }
-        (SquareSpot?, HomeColumn?) CurrentPosition { get; set; }
+        PieceNumber Id { get; }
+        Color Color { get; }
+        SquareSpot? CurrentSpot { get; set; }
+        HomeColumn? CurrentHome { get; set; }
         bool IsMatured { get; set; }
+        SquareSpot StartingSpot { get; }
+        SquareSpot EndingSpot { get; }
 
-        bool CanMoveToSquareSpot(int diceValue, SquareSpot currentSpot, SquareSpot endingSpotOfLayer);
+        bool FromSquareSpotToSquareSpot(int diceValue);
+        
+        void Move(SquareSpot destSpot);
+        void Move(HomeColumn destSpot);
+
+        void Kill();
     }
 }

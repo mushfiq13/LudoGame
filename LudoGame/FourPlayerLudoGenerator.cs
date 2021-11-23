@@ -8,189 +8,260 @@ namespace LudoGame
 {
     public class FourPlayerLudoGenerator : IGenerator
     {
-        FourPlayerLudoOutputProcessor outputProcessor;
-        FourPlayerLudoInputGenerator inputGenerator;
+        public IBoard Board { get; private set; }
+        private FourPlayerLudoOutputProcessor outputProcessor;
+        private FourPlayerLudoInputGenerator inputGenerator;
 
-        public FourPlayerLudoGenerator()
+        public FourPlayerLudoGenerator(IBoard board)
         {
+            Board = board;
             outputProcessor = new FourPlayerLudoOutputProcessor();
             inputGenerator = new FourPlayerLudoInputGenerator();
         }
 
-        public void SetInitialPlayer(IBoard board, IPlayer player) => board.CurrentPlayer = player;
+        public void SetInitialPlayer(IPlayer player) => Board.CurrentPlayer = player;
 
-        public bool StartGame(IBoard board) =>        
-            board.Players.Where(player => player.CanPlay() == true).Count() >= 2;
-        
-        public void PlayGame(IBoard board)
-        {            
-            SetInitialPlayer(board, board.Players[(int)BoardLayer.First - 1]);
+        public bool StartGame() => Board.Players.Where(player => player.CanPlay() == true).Count() >= 2;
 
-            if (board.CurrentPlayer == null) return;
+        public void PlayGame()
+        {
+            SetInitialPlayer(Board.Players[(int)BoardLayer.First - 1]);
 
-            while (!PlayersRanked(board))
+            if (Board.CurrentPlayer == null) return;
+
+            while (!Board.PlayersRanked())
             {
-                outputProcessor.PlayerStatus(board.CurrentPlayer);
+                outputProcessor.PlayerStatus(Board.CurrentPlayer);
 
-                if (board.CurrentPlayer.CanPlay())
+                if (Board.CurrentPlayer.CanPlay())
                 {
-                    board.CurrentPlayer.RollDice(board.Dice);                    
-                    outputProcessor.DiceValue(board.Dice.CurrentValue.Value);
-                    MoveAPiece(board);
+                    Board.CurrentPlayer.RollDice(Board.Dice);
+                    outputProcessor.PrintDiceValue(Board.Dice.CurrentValue.Value);
+                    MoveAPiece();
                 }
-                
-                TurnPlayer(board);
+
+                TurnPlayer();
             }
         }
 
-        public bool PlayersRanked(IBoard board) =>
-            board.Players.Where(player => player.CanPlay() == true).Any() ? false : true;        
-
-        private bool TurnPlayer(IBoard board)
-        {            
-            for (var i = 0; board.CurrentPlayer != null && i < board.Players.Count; ++i)
+        private bool TurnPlayer()
+        {
+            for (var i = 0; Board.CurrentPlayer != null && i < Board.Players.Count; ++i)
             {
-                if (board.CurrentPlayer.Layer != board.Players[i].Layer) continue;
-                board.CurrentPlayer = board.Players[(i + 1) % 4];
+                if (Board.CurrentPlayer.Layer != Board.Players[i].Layer) continue;
+                Board.CurrentPlayer = Board.Players[(i + 1) % 4];
                 return true;
             }
 
             return false;
-        }        
+        }
 
-        private bool MoveAPiece(IBoard board)
+        private bool MoveAPiece()
         {
-            if (board.CurrentPlayer == null || board.Dice.CurrentValue == null)
+            if (Board.CurrentPlayer == null || Board.Dice.CurrentValue == null)
             {
                 return false;
             }
 
-            var piecesNewPosition = GetPiecesNextPossiblePosition(board.CurrentPlayer, board.Dice.CurrentValue.Value);                        
-            
-            if (!AnyPieceCanMove(piecesNewPosition))
+            var possiblePosition = GetPiecesNextPossiblePosition(Board.CurrentPlayer, Board.Dice.CurrentValue.Value);            
+
+            if (!AnyPieceCanMove(possiblePosition))
             {
                 return false;
             }
 
-            PrintPiecePossiblePosition(piecesNewPosition);            
+            var option = ChoosePiece(possiblePosition);
+            var pieces = possiblePosition[option];
 
-            var option = ChoosePiece(piecesNewPosition);
-            IPiece piece = board.CurrentPlayer.Pieces[option];
+            foreach (var p in pieces.Item1)
+            {
+                RemovePiece(p);
+                
+                if (pieces.Item2.HasValue)
+                    Board.CurrentPlayer.MovePiece(p, pieces.Item2.Value);
+                else if (pieces.Item3.HasValue)
+                    Board.CurrentPlayer.MovePiece(p, pieces.Item3.Value);
 
-            RemovePiece(board, piece);
-            board.CurrentPlayer.MovePiece(piece, piecesNewPosition[option].Item2, piecesNewPosition[option].Item3);
-            AddPiece(board, piece);
+                AddPiece(p);
+            }
 
             return true;
         }
-        
-        private bool RemovePiece(IBoard board, IPiece piece)
+
+        private bool RemovePiece(IPiece piece)
         {
-            if (piece.CurrentPosition.Item1.HasValue)
+            if (piece.CurrentSpot.HasValue)
             {
-                board.PiecesAtSquare.Remove(piece.CurrentPosition.Item1.Value, piece);
+                Board.PiecesAtSquare.Remove(piece.CurrentSpot.Value, piece);
                 return true;
             }
 
             return false;
         }
 
-        private bool AddPiece(IBoard board, IPiece piece)
+        private bool AddPiece(IPiece piece)
         {
-            if (piece.CurrentPosition.Item1.HasValue)
+            if (piece.CurrentSpot.HasValue)
             {
-                board.PiecesAtSquare.Add(piece.CurrentPosition.Item1.Value, piece);
+                Board.PiecesAtSquare.Add(piece.CurrentSpot.Value, piece);
                 return true;
             }
 
             return false;
         }
 
-        private void PrintPiecePossiblePosition(IList<(PieceNumber, SquareSpot?, HomeColumn?)> piecesNewPosition)
+        private void PrintPossibleOptions(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> position)
         {
-            foreach (var value in piecesNewPosition)
+            for (int i = 0; i < position.Count; i++)
             {
-                outputProcessor.PrintPiecePossiblePosition(value.Item1, value.Item2, value.Item3);
+                var pieceInfo = position[i];
+               
+                outputProcessor.PrintOptionNumber(i + 1);
+                
+                if (pieceInfo.Item2.HasValue)
+                    outputProcessor.PrintPiecePossiblePosition(pieceInfo.Item1.Select(p => p.Id).ToList(), pieceInfo.Item2);
+                else
+                    outputProcessor.PrintPiecePossiblePosition(pieceInfo.Item1.Select(p => p.Id).ToList(), pieceInfo.Item3);
             }
         }
 
-        private int ChoosePiece(IList<(PieceNumber, SquareSpot?, HomeColumn?)> piecesPosition)
+        private int ChoosePiece(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> possiblePosition)
         {
+            PrintPossibleOptions(possiblePosition);
+
             int option;
-            
+
             do { option = inputGenerator.ChoosePiece() - 1; }
-            while (option < 0 || option > 3 ||
-                  (!piecesPosition[option].Item2.HasValue && !piecesPosition[option].Item3.HasValue));
+            while (option < 0 || option >= possiblePosition.Count);
 
             return option;
         }
 
-        private bool AnyPieceCanMove(IList<(PieceNumber, SquareSpot?, HomeColumn?)> piecesPosition) =>
-            piecesPosition.Where(position => (position.Item2.HasValue || position.Item3.HasValue) == true).Any();        
+        private bool AnyPieceCanMove(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> position) =>
+            position.Where(p => (p.Item2.HasValue || p.Item3.HasValue) == true).Select(p => p).Any();
 
-        private IList<(PieceNumber, SquareSpot?, HomeColumn?)> GetPiecesNextPossiblePosition(IPlayer player, int diceValue)
-        {
-            var possiblePositions = new List<(PieceNumber, SquareSpot?, HomeColumn?)>();
+        private IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> GetPiecesNextPossiblePosition(IPlayer player, int diceValue)
+        {            
+            IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> possiblePosition = new List<(IList<IPiece>, SquareSpot?, HomeColumn?)>();
+            IDictionary<PieceNumber, bool> pieceFlags = new Dictionary<PieceNumber, bool>();
 
             for (var i = 0; i < 4; ++i)
             {
                 IPiece piece = player.Pieces[i];
-                (SquareSpot?, HomeColumn?) toPosition = (null, null);
-                BoardLayer playerLayer = (BoardLayer)((int)piece.Color);
-                switch (playerLayer)
-                {
-                    case BoardLayer.First:
-                        toPosition = GetPosition(piece, diceValue, SquareSpot.First, SquareSpot.FiftyFirst);
-                        break;
-                    case BoardLayer.Second:
-                        toPosition = GetPosition(piece, diceValue, SquareSpot.Fourteenth, SquareSpot.Twelfth);
-                        break;
-                    case BoardLayer.Third:
-                        toPosition = GetPosition(piece, diceValue, SquareSpot.TwentySeventh, SquareSpot.TwentyFifth);
-                        break;
-                    case BoardLayer.Fourth:
-                        toPosition = GetPosition(piece, diceValue, SquareSpot.Fortieth, SquareSpot.ThirtyEighth);
-                        break;
-                }
                 
-                possiblePositions.Add((piece.Id, toPosition.Item1, toPosition.Item2));
+                if (pieceFlags.ContainsKey(piece.Id) && pieceFlags[piece.Id]) continue;
+
+                var selectedPieces = GetBlockedPiecesOrDefault(piece, diceValue);
+                possiblePosition.Add(selectedPieces);
+                
+                foreach (var p in selectedPieces.Item1)
+                    pieceFlags[p.Id] = true;
             }
 
-            return possiblePositions;
+            return possiblePosition;
         }
-        
-        private (SquareSpot?, HomeColumn?) GetPosition(IPiece piece, int diceValue, SquareSpot startingSpotOfLayer, SquareSpot endingSpotOfLayer)
+
+        private (IList<IPiece>, SquareSpot?, HomeColumn?) GetBlockedPiecesOrDefault(IPiece selectedPiece, int diceValue)
+        {
+            (IPiece?, IPiece?) nextPieces = (selectedPiece, null);
+
+            if (selectedPiece.CurrentSpot.HasValue && diceValue % 2 == 0)
+            {
+                var blockedPieces = Board.SpotHasDoublePiece(selectedPiece.CurrentSpot.Value);
+                if (blockedPieces != null && blockedPieces.Value.Item1.Color == selectedPiece.Color)
+                {
+                    nextPieces = (blockedPieces.Value.Item1, blockedPieces.Value.Item2);
+                }
+            }
+
+            (SquareSpot?, HomeColumn?) position;
+
+            if (nextPieces.Item2 != null)
+            {
+                position = GetPosition(nextPieces.Item1, diceValue / 2);
+            }
+            else
+            {
+                position = GetPosition(nextPieces.Item1, diceValue);
+            }
+
+            if (!IsPathValid((selectedPiece.CurrentSpot, selectedPiece.CurrentHome),
+                            (position.Item1, position.Item2), selectedPiece))
+            {
+                return (new List<IPiece>(), null, null);
+            }
+            
+            return nextPieces.Item2 == null
+                   ? (new List<IPiece> { nextPieces.Item1 }, position.Item1, position.Item2)
+                   : (new List<IPiece> { nextPieces.Item1, nextPieces.Item2 }, position.Item1, position.Item2);
+        }
+
+        private bool IsPathValid((SquareSpot?, HomeColumn?) begin, (SquareSpot?, HomeColumn?) end, IPiece piece)
+        {
+            // piece is at inside layer...
+            if (!begin.Item1.HasValue && !begin.Item2.HasValue && end.Item1.HasValue) return true;
+
+            if (begin.Item1.HasValue)
+            {
+                if (end.Item1.HasValue) return ValidatePath(begin.Item1.Value, end.Item1.Value);
+                if (end.Item2.HasValue) return ValidatePath(begin.Item1.Value, end.Item2.Value, piece);
+            }
+
+            return begin.Item2.HasValue && end.Item2.HasValue ? true : false;
+        }
+
+        private bool ValidatePath(SquareSpot from, SquareSpot to)
+        {
+            for (var curSpot = (int)from + 1; curSpot < (int)to; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
+            {
+                if (Board.IsTheSpotBlock((SquareSpot)curSpot))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidatePath(SquareSpot from, HomeColumn to, IPiece piece)
+        {
+            for (var curSpot = (int)from + 1; curSpot <= (int)piece.EndingSpot; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
+            {
+                if (Board.IsTheSpotBlock((SquareSpot)curSpot))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private (SquareSpot?, HomeColumn?) GetPosition(IPiece piece, int diceValue)
         {
             if (piece.IsMatured) return (null, null);
 
-            int? toSquare = (piece.CurrentPosition.Item1 != null)
-                            ? (int)piece.CurrentPosition.Item1 + diceValue
-                            : null;
-            int? toHome = (piece.CurrentPosition.Item2 != null)
-                            ? (int)piece.CurrentPosition.Item2 + diceValue
-                            : null;
+            SquareSpot? squareSpot = piece.CurrentSpot;
+            HomeColumn? homeColumn = piece.CurrentHome;
 
-            if (!toSquare.HasValue && !toHome.HasValue)
+            if (!squareSpot.HasValue && !homeColumn.HasValue)
             {
-                return diceValue == 6 ? (startingSpotOfLayer, null) : (null, null);
+                return diceValue == 6 ? (piece.StartingSpot, null) : (null, null);
             }
 
-            if (!toSquare.HasValue && toHome.HasValue)
+            if (!squareSpot.HasValue && homeColumn.HasValue)
             {
-                return (toHome <= (int)HomeColumn.Sixth)
+                int toHome = (int)homeColumn + diceValue;
+                return (toHome <= (int)HomeColumn.Fifth)
                         ? (null, (HomeColumn)toHome)
                         : (null, null);
-            }                
-            
-            if (toSquare.HasValue && !toHome.HasValue)
+            }
+
+            if (squareSpot.HasValue && !homeColumn.HasValue)
             {
-                toSquare = toSquare.Value / ((int)SquareSpot.FiftySecond + 1) + toSquare.Value % ((int)SquareSpot.FiftySecond + 1);
-                return piece.CanMoveToSquareSpot(diceValue, piece.CurrentPosition.Item1.Value, endingSpotOfLayer)
+                int toSquare = (int)squareSpot + diceValue;
+                toSquare %= GlobalConstant.MaxSpot;
+                return piece.FromSquareSpotToSquareSpot(diceValue)
                         ? ((SquareSpot)toSquare, null)
-                        : (null, (HomeColumn)(toSquare - (int)endingSpotOfLayer));
+                        : (null, (HomeColumn)(toSquare - (int)piece.EndingSpot - 1));
             }
 
             return (null, null);
-        }        
+        }
     }
 }

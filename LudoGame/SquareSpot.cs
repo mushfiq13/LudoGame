@@ -8,6 +8,7 @@ namespace LudoGame
 {
     public enum SquareSpot
     {
+        Zero = 0,
         First = 1,
         Second = 2,
         Third = 3,
@@ -58,7 +59,6 @@ namespace LudoGame
         FourtyEighth = 48,
         FourtyNineth = 49,
         Fiftieth = 50,
-        FiftyFirst = 51, 
-        FiftySecond = 52        
+        FiftyFirst = 51
     }
 }

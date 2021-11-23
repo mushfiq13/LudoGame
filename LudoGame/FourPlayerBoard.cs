@@ -13,6 +13,7 @@ namespace LudoGame
         public IPlayer? CurrentPlayer { get; set; }
         public IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
         public IList<IPlayer> Ranking { get; private set; }
+        
 
         public FourPlayerBoard()
         {
@@ -24,39 +25,38 @@ namespace LudoGame
 
         public void AddPlayer(string name, BoardLayer layer)
         {
-            Players.Add(new Player(name, layer, CreatePieces(layer)));
+            Players.Add(new Player(name, layer, AddPieces(layer)));
         }
         
-        private IList<IPiece> CreatePieces(BoardLayer layer)
+        private IList<IPiece> AddPieces(BoardLayer layer)
         {
             IList<IPiece> pieces = new List<IPiece>();
 
             for (var pieceId = 1; pieceId <= 4; ++pieceId)
             {
-                var newPiece = new Piece();
-                newPiece.Id = (PieceNumber)pieceId;
-                newPiece.Color = (Color)(int)layer;
-                newPiece.IsMatured = false;
-                pieces.Add(newPiece);
+                pieces.Add(CreatePiece(layer, (PieceNumber)pieceId));
             }
 
             return pieces;
         }
 
-        public bool IsSafeSpot(SquareSpot? square)
+        private IPiece CreatePiece(BoardLayer layer, PieceNumber pieceId)
+        {
+            return new Piece(pieceId, layer);
+        }
+
+        public bool IsSafeSpot(SquareSpot selectedSpot)
         {            
-            if (!square.HasValue) return false;
-            
-            switch ((PieceSafePosition)((int)square.Value))
+            switch ((PieceSafePosition)((int)selectedSpot))
             {
-                case PieceSafePosition.First:
-                case PieceSafePosition.Tenth:
-                case PieceSafePosition.Fourteenth:
-                case PieceSafePosition.TwentyThird:
-                case PieceSafePosition.TwentySeventh:
-                case PieceSafePosition.ThirtySixth:
-                case PieceSafePosition.Fortieth:
-                case PieceSafePosition.FourtyNineth:
+                case PieceSafePosition.Zero:
+                case PieceSafePosition.Nineth:
+                case PieceSafePosition.Thirteenth:
+                case PieceSafePosition.TwentySecond:
+                case PieceSafePosition.TwentySixth:
+                case PieceSafePosition.ThirtyFifth:
+                case PieceSafePosition.ThirtyNineth:
+                case PieceSafePosition.FourtyEighth:
                     return true;
             }
 
@@ -65,12 +65,39 @@ namespace LudoGame
 
         public void RankPlayer(IPlayer player) => Ranking.Add(player);
 
-        //public bool SpotIsBlock(SquareSpot spot)
-        //{
-        //    foreach (var piece in PiecesAtSquare[spot])
-        //    {
+        public bool PlayersRanked() => Players.Where(player => player.CanPlay() == true).Any() ? false : true;
 
-        //    }
-        //}
+        public bool IsTheSpotBlock(SquareSpot selectedSpot)
+        {            
+            return SpotHasDoublePiece(selectedSpot) != null ? true : false;
+        }
+
+        public (IPiece, IPiece)? SpotHasDoublePiece(SquareSpot selectedSpot)
+        {
+            if (!PiecesAtSquare.ContainsKey(selectedSpot) || IsSafeSpot(selectedSpot)) return null;
+
+            foreach (var curPiece in PiecesAtSquare[selectedSpot])
+            {
+                var pieces = (from piece in PiecesAtSquare[selectedSpot]
+                             where piece.Color.Equals(curPiece.Color)
+                             select piece);
+                if (pieces.Count() == 2)
+                    return (pieces.First(), pieces.Last());
+            }
+
+            return null;
+        }
+
+        public void KillOtherIfPossible(IPiece selectedPiece)
+        {
+            var curSpot = selectedPiece.CurrentSpot;
+
+            if (curSpot.HasValue && !IsSafeSpot(curSpot.Value))
+            {
+                var pieces = PiecesAtSquare[curSpot.Value].Where(p => p.Color != selectedPiece.Color).Select(p => p);
+                if (!pieces.Any()) return;
+
+            }
+        }
     }
 }

@@ -18,18 +18,18 @@ namespace LudoGame
             Console.WriteLine($"Player ID   : {(int)player.Layer}");
             Console.WriteLine($"BoardLayer  : {player.Layer}");
             Console.WriteLine($"Piece Color : {player.Pieces[0].Color}");
-            for (int i = 0; i < 4; ++i)
+            foreach (var piece in player.Pieces)
             {
-                PrintAsOrdinalNumber(i + 1);
-                if (player.Pieces[i].CurrentPosition.Item1.HasValue)
+                PrintAsOrdinalNumber((int)piece.Id);
+                if (piece.CurrentSpot.HasValue)
                 {
-                    Console.WriteLine($" Piece at {player.Pieces[i].CurrentPosition.Item1.Value} square");
+                    Console.WriteLine($" Piece at {piece.CurrentSpot.Value} square");
                 }
-                else if (player.Pieces[i].CurrentPosition.Item2.HasValue)
+                else if (piece.CurrentHome.HasValue)
                 {
-                    Console.WriteLine($" Piece at {player.Pieces[i].CurrentPosition.Item2.Value} home-column");
+                    Console.WriteLine($" Piece at {piece.CurrentHome.Value} home-column");
                 }
-                else if (player.Pieces[i].IsMatured)
+                else if (piece.IsMatured)
                 {
                     Console.WriteLine(" Piece at Inside Home Triangle.");
                 }
@@ -40,25 +40,23 @@ namespace LudoGame
             }
         }
 
-        public void PrintPiecePossiblePosition(PieceNumber pieceId, SquareSpot? square, HomeColumn? home)
+        public void PrintPiecePossiblePosition<T>(IList<PieceNumber> pieceId, T? value)
         {
-            PrintAsOrdinalNumber((int)pieceId);
-
-            if (square.HasValue)
+            if (typeof(T).Equals(typeof(SquareSpot)))
             {
-                Console.WriteLine($" piece can be placed at {square.Value} square");
+                Console.WriteLine($"{string.Join(", ", pieceId)} piece(s) can be placed at {value} square");
             }
-            else if (home.HasValue)
+            else if (typeof(T).Equals(typeof(HomeColumn)))
             {
-                Console.WriteLine($" piece can be placed at {home.Value} home-column");
+                Console.WriteLine($"{string.Join(", ", pieceId)} piece(s) can be placed at {value} home-column");
             }
             else
             {
-                Console.WriteLine($" piece can not move");
+                Console.WriteLine($"{string.Join(", ", pieceId)} piece(s) can not move!");
             }
         }
 
-        private void PrintAsOrdinalNumber(int number)
+        public void PrintAsOrdinalNumber(int number)
         {
             switch (number)
             {
@@ -82,9 +80,14 @@ namespace LudoGame
             Console.WriteLine("Player UnAvailable!");
         }
 
-        public void DiceValue(int? diceValue)
+        public void PrintDiceValue(int diceValue)
         {
             Console.WriteLine($"Dice value is {diceValue}");
+        }        
+
+        public void PrintOptionNumber(int number)
+        {
+            Console.Write(number + ". ");
         }
     }
 }

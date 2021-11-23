@@ -13,9 +13,9 @@ namespace LudoGame
             fourPlayerBoard.AddPlayer("C", BoardLayer.Third);
             fourPlayerBoard.AddPlayer("D", BoardLayer.Fourth);
 
-            IGenerator generator = new FourPlayerLudoGenerator();
-            if (generator.StartGame(fourPlayerBoard))
-                generator.PlayGame(fourPlayerBoard);
+            IGenerator generator = new FourPlayerLudoGenerator(fourPlayerBoard);
+            if (generator.StartGame())
+                generator.PlayGame();
         }                              
     }
 }

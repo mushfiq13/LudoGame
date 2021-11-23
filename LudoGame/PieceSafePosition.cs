@@ -8,13 +8,13 @@ namespace LudoGame
 {
     public enum PieceSafePosition
     {
-        First = (int)SquareSpot.First,
-        Tenth = (int)SquareSpot.Tenth,
-        Fourteenth = (int)SquareSpot.Fourteenth,
-        TwentyThird = (int)SquareSpot.TwentyThird,
-        TwentySeventh = (int)SquareSpot.TwentySeventh,
-        ThirtySixth = (int)SquareSpot.ThirtySixth,
-        Fortieth = (int)SquareSpot.Fortieth,
-        FourtyNineth = (int)SquareSpot.FourtyNineth
+        Zero = (int)SquareSpot.Zero,
+        Nineth = (int)SquareSpot.Nineth,
+        Thirteenth = (int)SquareSpot.Thirteenth,
+        TwentySecond = (int)SquareSpot.TwentySecond,
+        TwentySixth = (int)SquareSpot.TwentySixth,
+        ThirtyFifth = (int)SquareSpot.ThirtyFifth,
+        ThirtyNineth = (int)SquareSpot.ThirtyNineth,
+        FourtyEighth = (int)SquareSpot.FourtyEighth
     }
 }
