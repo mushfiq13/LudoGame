@@ -12,20 +12,15 @@ namespace LudoGame
         public IList<IPlayer> Players { get; private set; }
         public IPlayer? CurrentPlayer { get; set; }
         public IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
-        public IList<IPlayer> Ranking { get; private set; }
 
         public FourPlayerBoard()
         {
             Dice = new SixSidedDice();
             Players = new List<IPlayer>();
             PiecesAtSquare = new Dictionary<SquareSpot, List<IPiece>>();
-            Ranking = new List<IPlayer>();
         }
 
-        public void AddPlayer(string name, BoardLayer layer)
-        {
-            Players.Add(new Player(name, layer, AddPieces(layer)));
-        }
+        public void AddPlayer(string name, BoardLayer layer) => Players.Add(new Player(name, layer, AddPieces(layer)));        
         
         private IList<IPiece> AddPieces(BoardLayer layer)
         {
@@ -39,63 +34,86 @@ namespace LudoGame
             return pieces;
         }
 
-        private IPiece CreatePiece(BoardLayer layer, PieceNumber pieceId)
-        {
-            return new Piece(pieceId, layer);
-        }
+        private IPiece CreatePiece(BoardLayer layer, PieceNumber pieceId) => new Piece(pieceId, layer);
 
         public bool IsSafeSpot(SquareSpot selectedSpot)
         {            
-            switch ((PieceSafePosition)((int)selectedSpot))
+            switch ((PieceSafeSpot)((int)selectedSpot))
             {
-                case PieceSafePosition.Zero:
-                case PieceSafePosition.Nineth:
-                case PieceSafePosition.Thirteenth:
-                case PieceSafePosition.TwentySecond:
-                case PieceSafePosition.TwentySixth:
-                case PieceSafePosition.ThirtyFifth:
-                case PieceSafePosition.ThirtyNineth:
-                case PieceSafePosition.FourtyEighth:
+                case PieceSafeSpot.Zero:
+                case PieceSafeSpot.Nineth:
+                case PieceSafeSpot.Thirteenth:
+                case PieceSafeSpot.TwentySecond:
+                case PieceSafeSpot.TwentySixth:
+                case PieceSafeSpot.ThirtyFifth:
+                case PieceSafeSpot.ThirtyNineth:
+                case PieceSafeSpot.FourtyEighth:
                     return true;
             }
 
             return false;
         }
 
-        public void RankPlayer(IPlayer player) => Ranking.Add(player);
+        public bool PlayersRanked() => !(Players.Where(player => player.CanPlay() == true).Any());
 
-        public bool PlayersRanked() => Players.Where(player => player.CanPlay() == true).Any() ? false : true;
+        public bool IsTheSpotBlock(SquareSpot selectedSpot, IPiece piece) => SpotHasSamePiece(selectedSpot, piece) != null;
 
-        public bool IsTheSpotBlock(SquareSpot selectedSpot)
-        {            
-            return SpotHasDoublePiece(selectedSpot) != null ? true : false;
-        }
-
-        public (IPiece, IPiece)? SpotHasDoublePiece(SquareSpot selectedSpot)
+        public (IPiece, IPiece)? SpotHasSamePiece(SquareSpot selectedSpot, IPiece piece)
         {
             if (!PiecesAtSquare.ContainsKey(selectedSpot) || IsSafeSpot(selectedSpot)) return null;
 
-            foreach (var curPiece in PiecesAtSquare[selectedSpot])
-            {
-                var pieces = (from piece in PiecesAtSquare[selectedSpot]
-                             where piece.Color.Equals(curPiece.Color)
-                             select piece);
-                if (pieces.Count() == 2)
-                    return (pieces.First(), pieces.Last());
-            }
+            var pieces = (from p in PiecesAtSquare[selectedSpot]
+                         where p.Color.Equals(piece.Color)
+                         select p);
 
-            return null;
+            return (pieces.Count() == 2)
+                    ? (pieces.First(), pieces.Last())
+                    : null;
         }
 
-        public void KillOtherIfPossible(IPiece selectedPiece)
+        private IDictionary<Color, List<IPiece>> GetPieces(SquareSpot spot, Color withoutThisColor)
         {
-            var curSpot = selectedPiece.CurrentSpot;
+            IDictionary<Color, List<IPiece>> pieces = new Dictionary<Color, List<IPiece>>();
 
-            if (curSpot.HasValue && !IsSafeSpot(curSpot.Value))
+            if (PiecesAtSquare.ContainsKey(spot))
             {
-                var pieces = PiecesAtSquare[curSpot.Value].Where(p => p.Color != selectedPiece.Color).Select(p => p);
-                if (!pieces.Any()) return;
+                foreach (var p in PiecesAtSquare[spot])
+                {
+                    if (!p.Color.Equals(withoutThisColor))
+                        pieces.Add(p.Color, p);
+                }
+            }
 
+            return pieces;
+        }
+
+        public void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot)
+        {
+            if (!selectedPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;
+
+            Kill(GetPieces(othersSpot, selectedPiece.Color), othersSpot, (p) => p.Count() != 2);
+        }
+
+        public void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot)
+        {
+            if ( IsSafeSpot(othersSpot)) return;
+            if (selectedPieces.Item1.Color != selectedPieces.Item2.Color) return;
+            if (selectedPieces.Item1.CurrentSpot != selectedPieces.Item2.CurrentSpot) return;
+            if (!selectedPieces.Item1.CurrentSpot.HasValue || IsSafeSpot(selectedPieces.Item1.CurrentSpot.Value)) return;
+
+            Kill(GetPieces(othersSpot, selectedPieces.Item1.Color), othersSpot, (p) => p.Count() == 2);
+        }
+
+        private void Kill(IDictionary<Color, List<IPiece>> selectedPieces, SquareSpot killingSpot, Predicate<List<IPiece>> checkIfPiecesKill)
+        {
+            foreach (var pieces in selectedPieces)
+            {
+                if (!checkIfPiecesKill(pieces.Value)) continue;
+                foreach (var p in pieces.Value)
+                {
+                    p.Kill();
+                    PiecesAtSquare[killingSpot].Remove(p);
+                }
             }
         }
     }

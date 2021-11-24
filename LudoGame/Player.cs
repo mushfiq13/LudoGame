@@ -21,18 +21,12 @@ namespace LudoGame
 
         public void RollDice(IDice dice) => dice.Roll();
 
-        public bool IsAllPiecesMatured() => Pieces.Where(piece => piece.IsMatured == false).Any() ? false : true;
+        public bool IsAllPiecesMatured() => !(Pieces.Where(piece => piece.IsMatured == false).Any());
 
-        public bool CanPlay() => IsAllPiecesMatured() ? false : true;
+        public bool CanPlay() => !IsAllPiecesMatured();
         
-        public void MovePiece(IPiece piece, SquareSpot destSpot)
-        {
-            piece.Move(destSpot);
-        }
+        public void MovePiece(IPiece piece, SquareSpot destSpot) => piece.Move(destSpot);
 
-        public void MovePiece(IPiece piece, HomeColumn destHome)
-        {
-            piece.Move(destHome);
-        }
+        public void MovePiece(IPiece piece, HomeColumn destHome) => piece.Move(destHome);       
     }
 }

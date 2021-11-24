@@ -29,6 +29,8 @@ namespace LudoGame
 
             if (Board.CurrentPlayer == null) return;
 
+            IDictionary<BoardLayer, IPlayer> ranked = new Dictionary<BoardLayer, IPlayer>();
+
             while (!Board.PlayersRanked())
             {
                 outputProcessor.PlayerStatus(Board.CurrentPlayer);
@@ -39,9 +41,16 @@ namespace LudoGame
                     outputProcessor.PrintDiceValue(Board.Dice.CurrentValue.Value);
                     MoveAPiece();
                 }
+                
+                if (!Board.CurrentPlayer.CanPlay() && !ranked.ContainsKey(Board.CurrentPlayer.Layer))
+                {
+                    ranked[Board.CurrentPlayer.Layer] = Board.CurrentPlayer;
+                }
 
                 TurnPlayer();
             }
+
+            outputProcessor.PrintRanking(ranked);
         }
 
         private bool TurnPlayer()
@@ -49,7 +58,7 @@ namespace LudoGame
             for (var i = 0; Board.CurrentPlayer != null && i < Board.Players.Count; ++i)
             {
                 if (Board.CurrentPlayer.Layer != Board.Players[i].Layer) continue;
-                Board.CurrentPlayer = Board.Players[(i + 1) % 4];
+                Board.CurrentPlayer = Board.Players[(i + 1) % Board.Players.Count];
                 return true;
             }
 
@@ -70,8 +79,14 @@ namespace LudoGame
                 return false;
             }            
 
-            var option = ChoosePiece(possiblePosition);
+            var option = ChooseOption(possiblePosition);
             var pieces = possiblePosition[option];
+
+            if (pieces.Item2.HasValue)
+            {
+                if (pieces.Item1.Count == 1) Board.KillOthersIfPossible(pieces.Item1[0], pieces.Item2.Value);
+                else Board.KillOthersIfPossible((pieces.Item1[0], pieces.Item1[1]), pieces.Item2.Value);
+            }
 
             foreach (var p in pieces.Item1)
             {
@@ -88,26 +103,15 @@ namespace LudoGame
             return true;
         }
 
-        private bool RemovePiece(IPiece piece)
-        {
-            if (piece.CurrentSpot.HasValue)
-            {
-                Board.PiecesAtSquare.Remove(piece.CurrentSpot.Value, piece);
-                return true;
-            }
-
-            return false;
-        }
+        private bool RemovePiece(IPiece piece) =>
+            piece.CurrentSpot.HasValue && Board.PiecesAtSquare.Remove(piece.CurrentSpot.Value, piece);
 
         private bool AddPiece(IPiece piece)
         {
-            if (piece.CurrentSpot.HasValue)
-            {
-                Board.PiecesAtSquare.Add(piece.CurrentSpot.Value, piece);
-                return true;
-            }
-
-            return false;
+            if (!piece.CurrentSpot.HasValue) return false;
+            
+            Board.PiecesAtSquare.Add(piece.CurrentSpot.Value, piece);
+            return true;
         }
 
         private void PrintPossibleOptions(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> position)
@@ -125,13 +129,13 @@ namespace LudoGame
             }
         }
 
-        private int ChoosePiece(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> possiblePosition)
+        private int ChooseOption(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> possiblePosition)
         {
             PrintPossibleOptions(possiblePosition);
 
             int option;
 
-            do { option = inputGenerator.ChoosePiece() - 1; }
+            do { option = inputGenerator.ChoosePiece(possiblePosition.Count) - 1; }
             while (option < 0 || option >= possiblePosition.Count ||
                     (!possiblePosition[option].Item2.HasValue && !possiblePosition[option].Item3.HasValue));
 
@@ -168,7 +172,7 @@ namespace LudoGame
 
             if (selectedPiece.CurrentSpot.HasValue)
             {
-                var doublePieces = Board.SpotHasDoublePiece(selectedPiece.CurrentSpot.Value);
+                var doublePieces = Board.SpotHasSamePiece(selectedPiece.CurrentSpot.Value, selectedPiece);
                 if (doublePieces != null && doublePieces.Value.Item1.Color == selectedPiece.Color)
                 {
                     if ((diceValue & 1) == 1)
@@ -197,18 +201,18 @@ namespace LudoGame
 
             if (begin.Item1.HasValue)
             {
-                if (end.Item1.HasValue) return ValidatePath(begin.Item1.Value, end.Item1.Value);
+                if (end.Item1.HasValue) return ValidatePath(begin.Item1.Value, end.Item1.Value, piece);
                 if (end.Item2.HasValue) return ValidatePath(begin.Item1.Value, end.Item2.Value, piece);
             }
 
             return begin.Item2.HasValue && end.Item2.HasValue ? true : false;
         }
 
-        private bool ValidatePath(SquareSpot from, SquareSpot to)
+        private bool ValidatePath(SquareSpot from, SquareSpot to, IPiece piece)
         {
             for (var curSpot = (int)from + 1; curSpot < (int)to; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (Board.IsTheSpotBlock((SquareSpot)curSpot))
+                if (Board.IsTheSpotBlock((SquareSpot)curSpot, piece))
                     return false;
             }
 
@@ -219,7 +223,7 @@ namespace LudoGame
         {
             for (var curSpot = (int)from + 1; curSpot <= (int)piece.EndingSpot; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (Board.IsTheSpotBlock((SquareSpot)curSpot))
+                if (Board.IsTheSpotBlock((SquareSpot)curSpot, piece))
                     return false;
             }
 
@@ -240,18 +244,15 @@ namespace LudoGame
 
             if (!squareSpot.HasValue && homeColumn.HasValue)
             {
-                int toHome = (int)homeColumn + diceValue;
-                return (toHome <= (int)HomeColumn.Fifth)
-                        ? (null, (HomeColumn)toHome)
-                        : (null, null);
+                var toHome = (int)homeColumn + diceValue;
+                return (toHome <= (int)HomeColumn.Fifth) ? (null, (HomeColumn)toHome) : (null, null);
             }
 
             if (squareSpot.HasValue && !homeColumn.HasValue)
             {
-                int toSquare = (int)squareSpot + diceValue;
-                toSquare %= GlobalConstant.MaxSpot;
+                var toSquare = (int)squareSpot + diceValue;
                 return piece.FromSquareSpotToSquareSpot(diceValue)
-                        ? ((SquareSpot)toSquare, null)
+                        ? ((SquareSpot)(toSquare % GlobalConstant.MaxSpot), null)
                         : (null, (HomeColumn)(toSquare - (int)piece.EndingSpot - 1));
             }
 

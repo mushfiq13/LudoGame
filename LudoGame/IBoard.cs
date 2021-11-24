@@ -12,15 +12,16 @@ namespace LudoGame
         IList<IPlayer> Players { get; }
         IPlayer? CurrentPlayer { get; set; }
         IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
-        IList<IPlayer> Ranking { get; }
 
         void AddPlayer(string name, BoardLayer layer);        
 
         bool IsSafeSpot(SquareSpot selectedSpot);
-        bool IsTheSpotBlock(SquareSpot selectedSpot);
-        (IPiece, IPiece)? SpotHasDoublePiece(SquareSpot selectedSpot);
+        bool IsTheSpotBlock(SquareSpot selectedSpot, IPiece piece);
+        (IPiece, IPiece)? SpotHasSamePiece(SquareSpot selectedSpot, IPiece piece);
 
-        void RankPlayer(IPlayer player);
+        void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot);
+        void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot);
+
         bool PlayersRanked();
     }
 }

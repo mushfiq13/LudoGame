@@ -11,14 +11,8 @@ namespace LudoGame
         private Random _random;
         public int? CurrentValue { get; set; }
 
-        public SixSidedDice()
-        {
-            _random = new Random(DateTime.UtcNow.Millisecond);
-        }
+        public SixSidedDice() => _random = new Random(DateTime.UtcNow.Millisecond);        
 
-        public void Roll()
-        {            
-            CurrentValue = _random.Next(1, 7);
-        }
+        public void Roll() => CurrentValue = _random.Next(1, 7);
     }
 }

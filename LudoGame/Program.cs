@@ -9,8 +9,8 @@ namespace LudoGame
         {
             IBoard fourPlayerBoard = new FourPlayerBoard();
             fourPlayerBoard.AddPlayer("A", BoardLayer.First);
-            fourPlayerBoard.AddPlayer("B", BoardLayer.Second);
-            fourPlayerBoard.AddPlayer("C", BoardLayer.Third);
+            //fourPlayerBoard.AddPlayer("B", BoardLayer.Second);
+            //fourPlayerBoard.AddPlayer("C", BoardLayer.Third);
             fourPlayerBoard.AddPlayer("D", BoardLayer.Fourth);
 
             IGenerator generator = new FourPlayerLudoGenerator(fourPlayerBoard);

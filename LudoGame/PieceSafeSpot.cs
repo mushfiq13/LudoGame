@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LudoGame
 {
-    public enum PieceSafePosition
+    public enum PieceSafeSpot
     {
         Zero = (int)SquareSpot.Zero,
         Nineth = (int)SquareSpot.Nineth,

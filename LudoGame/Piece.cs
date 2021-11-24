@@ -31,23 +31,13 @@ namespace LudoGame
 
             if (EndingSpot == SquareSpot.Fiftieth)
             {
-                return (int)CurrentSpot + diceValue <= (int)EndingSpot
-                        ? true
-                        : false;
-            }
-            
-            if ((int)CurrentSpot > (int)EndingSpot || (int)CurrentSpot + diceValue <= (int)EndingSpot)
-            {
-                return true;
+                return (int)CurrentSpot + diceValue <= (int)EndingSpot;                        
             }
 
-            return false;
+            return ((int)CurrentSpot > (int)EndingSpot || (int)CurrentSpot + diceValue <= (int)EndingSpot);            
         }
 
-        public void Move(SquareSpot destSpot)
-        {
-            CurrentSpot = destSpot;
-        }
+        public void Move(SquareSpot destSpot) => CurrentSpot = destSpot;        
 
         public void Move(HomeColumn destHome)
         {
@@ -55,12 +45,7 @@ namespace LudoGame
 
             CurrentHome = destHome;
             
-            if (CurrentHome == HomeColumn.Fifth)
-            {
-                CurrentSpot = null;
-                CurrentHome = null;
-                IsMatured = true;
-            }
+            if (CurrentHome == HomeColumn.Fifth) Matured();            
         }
 
         public void Kill()
@@ -68,6 +53,13 @@ namespace LudoGame
             CurrentSpot = null;
             CurrentHome = null;
             IsMatured = false;
+        }
+
+        private void Matured()
+        {
+            CurrentSpot = null;
+            CurrentHome = null;
+            IsMatured = true;
         }
     }
 }

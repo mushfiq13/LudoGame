@@ -91,5 +91,18 @@ namespace LudoGame
         {
             Console.Write(number + ". ");
         }
+
+        public void PrintRanking<T>(IDictionary<T, IPlayer> rank) where T : notnull
+        {
+            Console.WriteLine("Players Ranking...");
+            var count = 0;
+            foreach (var player in rank.Values)
+            {
+                Console.WriteLine($"{++count}.");
+                Console.WriteLine($"{player.Name}");
+                Console.WriteLine($"{player.Layer}");
+                Console.WriteLine();
+            }
+        }
     }
 }
