@@ -21,6 +21,7 @@ namespace LudoGame
         void Move(SquareSpot destSpot);
         void Move(HomeColumn destSpot);
 
+        bool IsLocked();
         void Kill();
     }
 }

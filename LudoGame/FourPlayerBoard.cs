@@ -56,42 +56,44 @@ namespace LudoGame
 
         public bool PlayersRanked() => !(Players.Where(player => player.CanPlay() == true).Any());
 
-        public bool IsTheSpotBlock(SquareSpot selectedSpot, IPiece piece) => SpotHasSamePiece(selectedSpot, piece) != null;
-
-        public (IPiece, IPiece)? SpotHasSamePiece(SquareSpot selectedSpot, IPiece piece)
+        private IList<IPiece> GetKillingPieces(SquareSpot killingSpot, Color killWithoutThisColor, Predicate<IList<IPiece>> check)
         {
-            if (!PiecesAtSquare.ContainsKey(selectedSpot) || IsSafeSpot(selectedSpot)) return null;
+            IList<IPiece> pieces = new List<IPiece>();
 
-            var pieces = (from p in PiecesAtSquare[selectedSpot]
-                         where p.Color.Equals(piece.Color)
-                         select p);
+            if (!PiecesAtSquare.ContainsKey(killingSpot)) return pieces;
 
-            return (pieces.Count() == 2)
-                    ? (pieces.First(), pieces.Last())
-                    : null;
-        }
-
-        private IDictionary<Color, List<IPiece>> GetPieces(SquareSpot spot, Color withoutThisColor)
-        {
-            IDictionary<Color, List<IPiece>> pieces = new Dictionary<Color, List<IPiece>>();
-
-            if (PiecesAtSquare.ContainsKey(spot))
+            var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
+            foreach (var color in colors)
             {
-                foreach (var p in PiecesAtSquare[spot])
+                if (color == killWithoutThisColor) continue;
+
+                var getSamePieces = (from piece in PiecesAtSquare[killingSpot]
+                                     where piece.Color == color
+                                     select piece).ToList();
+
+                if (check(getSamePieces))
                 {
-                    if (!p.Color.Equals(withoutThisColor))
-                        pieces.Add(p.Color, p);
+                    foreach (var i in getSamePieces)
+                        pieces.Add(i);
                 }
             }
-
+            if (pieces.Count > 0)
+            {
+                foreach (var item in pieces)
+                {
+                    Console.Write(item.Id + ", " + item.Color + " .. ");
+                }
+                Console.WriteLine();
+            }
             return pieces;
         }
 
         public void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot)
         {
-            if (!selectedPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;
+            if (!selectedPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;            
 
-            Kill(GetPieces(othersSpot, selectedPiece.Color), othersSpot, (p) => p.Count() != 2);
+            Kill(GetKillingPieces(othersSpot, selectedPiece.Color, (collection) => collection.Count() != 2),
+                othersSpot);
         }
 
         public void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot)
@@ -100,20 +102,17 @@ namespace LudoGame
             if (selectedPieces.Item1.Color != selectedPieces.Item2.Color) return;
             if (selectedPieces.Item1.CurrentSpot != selectedPieces.Item2.CurrentSpot) return;
             if (!selectedPieces.Item1.CurrentSpot.HasValue || IsSafeSpot(selectedPieces.Item1.CurrentSpot.Value)) return;
-
-            Kill(GetPieces(othersSpot, selectedPieces.Item1.Color), othersSpot, (p) => p.Count() == 2);
+            
+            Kill(GetKillingPieces(othersSpot, selectedPieces.Item1.Color, (collection) => collection.Count() == 2),
+                othersSpot);
         }
 
-        private void Kill(IDictionary<Color, List<IPiece>> selectedPieces, SquareSpot killingSpot, Predicate<List<IPiece>> checkIfPiecesKill)
+        private void Kill(IList<IPiece> selectedPieces, SquareSpot killingSpot)
         {
-            foreach (var pieces in selectedPieces)
+            foreach (var piece in selectedPieces)
             {
-                if (!checkIfPiecesKill(pieces.Value)) continue;
-                foreach (var p in pieces.Value)
-                {
-                    p.Kill();
-                    PiecesAtSquare[killingSpot].Remove(p);
-                }
+                piece.Kill();
+                PiecesAtSquare.Remove(killingSpot, piece);
             }
         }
     }

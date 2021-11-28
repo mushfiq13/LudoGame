@@ -48,6 +48,8 @@ namespace LudoGame
             if (CurrentHome == HomeColumn.Fifth) Matured();            
         }
 
+        public bool IsLocked() => CurrentSpot != null || CurrentHome != null || !IsMatured;        
+
         public void Kill()
         {
             CurrentSpot = null;

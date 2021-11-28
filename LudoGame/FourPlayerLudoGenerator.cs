@@ -33,6 +33,15 @@ namespace LudoGame
 
             while (!Board.PlayersRanked())
             {
+                Console.WriteLine();
+                foreach (var i in Board.PiecesAtSquare)
+                {
+                    Console.WriteLine((int)i.Key + ".");
+                    foreach (var j in i.Value)
+                        Console.Write($"({j.Id}, {j.Color}), ");
+                    Console.WriteLine();
+                }
+                Console.WriteLine();
                 outputProcessor.PlayerStatus(Board.CurrentPlayer);
 
                 if (Board.CurrentPlayer.CanPlay())
@@ -91,12 +100,13 @@ namespace LudoGame
             foreach (var p in pieces.Item1)
             {
                 if (pieces.Item2.HasValue)
+                {
+                    RemovePieceFromSpot(p);
                     Board.CurrentPlayer.MovePiece(p, pieces.Item2.Value);
+                    AddPieceToSpot(p);
+                }
                 else if (pieces.Item3.HasValue)
                     Board.CurrentPlayer.MovePiece(p, pieces.Item3.Value);
-                
-                RemovePieceFromSpot(p);
-                AddPieceToSpot(p);
             }
 
             return true;
@@ -145,22 +155,77 @@ namespace LudoGame
         private IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> GetPiecesNextPossiblePosition(IPlayer player, int diceValue)
         {            
             IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> possiblePosition = new List<(IList<IPiece>, SquareSpot?, HomeColumn?)>();
-            IDictionary<PieceNumber, bool> pieceFlags = new Dictionary<PieceNumber, bool>();
-
-            for (var i = 0; i < 4; ++i)
+            IDictionary<PieceNumber, bool> pieceStatus = new Dictionary<PieceNumber, bool>();
+            
+            foreach (var piece in player.Pieces)
             {
-                IPiece piece = player.Pieces[i];
+                if (pieceStatus.ContainsKey(piece.Id)) continue;
                 
-                if (pieceFlags.ContainsKey(piece.Id) && pieceFlags[piece.Id]) continue;
+                if (piece.CurrentSpot.HasValue)
+                {
+                    var getDoublePieces = GetDoublePiecesIfSpotHasSameType(piece.CurrentSpot.Value, piece, diceValue);
+                    if (getDoublePieces.Item1.HasValue)
+                    {
+                        possiblePosition.Add(
+                            (new List<IPiece> { getDoublePieces.Item1.Value.Item1, getDoublePieces.Item1.Value.Item2 },
+                            getDoublePieces.Item2, getDoublePieces.Item3));
+                        pieceStatus[getDoublePieces.Item1.Value.Item1.Id] = true;
+                        pieceStatus[getDoublePieces.Item1.Value.Item2.Id] = true;
+                        Console.WriteLine("double pieces!");
+                        continue;
+                    }
+                }
 
-                var selectedPieces = GetSingleOrDoublePieces(piece, diceValue);
-                possiblePosition.Add(selectedPieces);
-                
-                foreach (var p in selectedPieces.Item1)
-                    pieceFlags[p.Id] = true;
+                var position = GetPositionIfPossibleForSinglePiece(piece, diceValue);
+                possiblePosition.Add((new List<IPiece> { piece }, position.Item1, position.Item2));
+                pieceStatus[piece.Id] = true;
+                Console.WriteLine("Single pieces!");
             }
 
+            //for (var i = 0; i < 4; ++i)
+            //{
+            //    IPiece piece = player.Pieces[i];
+
+            //    if (pieceStatus.ContainsKey(piece.Id) && pieceStatus[piece.Id]) continue;
+
+            //    var selectedPieces = GetSingleOrDoublePieces(piece, diceValue);
+            //    possiblePosition.Add(selectedPieces);
+
+            //    foreach (var p in selectedPieces.Item1)
+            //        pieceStatus[p.Id] = true;
+            //}
+
             return possiblePosition;
+        }
+
+        private ((IPiece, IPiece)?, SquareSpot?, HomeColumn?) GetDoublePiecesIfSpotHasSameType(SquareSpot selectedSpot, IPiece selectedPiece, int diceValue)
+        {                        
+            if (!Board.IsSafeSpot(selectedSpot))
+            {
+                var doublePieces = SpotHasSamePiece(selectedSpot, selectedPiece);
+                if (doublePieces != null)
+                {
+                    if ((diceValue % 2 != 0))
+                        return ((doublePieces.Value.Item1, doublePieces.Value.Item2), null, null);
+
+                    var position = GetPosition(doublePieces.Value.Item1, diceValue / 2);
+                    return ((doublePieces.Value.Item1, doublePieces.Value.Item2), position.Item1, position.Item2);
+                }
+            }
+
+            return (null, null, null);
+        }
+
+        private (SquareSpot?, HomeColumn?) GetPositionIfPossibleForSinglePiece(IPiece selectedPiece, int diceValue)
+        {
+            var position = GetPosition(selectedPiece, diceValue);
+
+            if (!IsPathValidForSinglePiece(selectedPiece, (position.Item1, position.Item2)))
+            {
+                return (null, null);
+            }
+
+            return (position.Item1, position.Item2);
         }
 
         private (IList<IPiece>, SquareSpot?, HomeColumn?) GetSingleOrDoublePieces(IPiece selectedPiece, int diceValue)
@@ -169,7 +234,7 @@ namespace LudoGame
 
             if (selectedPiece.CurrentSpot.HasValue)
             {
-                var doublePieces = Board.SpotHasSamePiece(selectedPiece.CurrentSpot.Value, selectedPiece);
+                var doublePieces = SpotHasSamePiece(selectedPiece.CurrentSpot.Value, selectedPiece);
                 if (doublePieces != null && doublePieces.Value.Item1.Color == selectedPiece.Color)
                 {
                     if ((diceValue & 1) == 1)
@@ -182,8 +247,7 @@ namespace LudoGame
 
             position = GetPosition(selectedPiece, diceValue);
 
-            if (!IsPathValidForSinglePiece((selectedPiece.CurrentSpot, selectedPiece.CurrentHome),
-                                            (position.Item1, position.Item2), selectedPiece))
+            if (!IsPathValidForSinglePiece(selectedPiece, (position.Item1, position.Item2)))
             {
                 return (new List<IPiece> { selectedPiece }, null, null);
             }
@@ -191,28 +255,59 @@ namespace LudoGame
             return (new List<IPiece> { selectedPiece }, position.Item1, position.Item2);
         }
 
-        private bool IsPathValidForSinglePiece((SquareSpot?, HomeColumn?) begin, (SquareSpot?, HomeColumn?) end, IPiece piece)
+        private (IPiece, IPiece)? SpotHasSamePiece(SquareSpot selectedSpot, IPiece piece)
+        {
+            if (!Board.PiecesAtSquare.ContainsKey(selectedSpot)) return null;
+
+            var pieces = (from p in Board.PiecesAtSquare[selectedSpot]
+                          where p.Color.Equals(piece.Color)
+                          select p);
+
+            return (pieces.Count() == 2)
+                    ? (pieces.First(), pieces.Last())
+                    : null;
+        }
+
+        private bool IsPathValidForSinglePiece(IPiece selectedPiece, (SquareSpot?, HomeColumn?) destination)
         {
             // piece is at inside layer...
-            if (!begin.Item1.HasValue && !begin.Item2.HasValue && end.Item1.HasValue) return true;
+            if (!selectedPiece.CurrentSpot.HasValue && !selectedPiece.CurrentHome.HasValue && destination.Item1.HasValue) return true;
 
-            if (begin.Item1.HasValue)
+            if (selectedPiece.CurrentSpot.HasValue)
             {
-                if (end.Item1.HasValue) return ValidatePath(begin.Item1.Value, end.Item1.Value, piece);
-                if (end.Item2.HasValue) return ValidatePath(begin.Item1.Value, end.Item2.Value, piece);
+                if (destination.Item1.HasValue) return ValidatePath(selectedPiece.CurrentSpot.Value, destination.Item1.Value, selectedPiece);
+                if (destination.Item2.HasValue) return ValidatePath(selectedPiece.CurrentSpot.Value, destination.Item2.Value, selectedPiece);
             }
 
-            return begin.Item2.HasValue && end.Item2.HasValue ? true : false;
+            return selectedPiece.CurrentHome.HasValue && destination.Item2.HasValue;
         }
 
         private bool ValidatePath(SquareSpot from, SquareSpot to, IPiece piece)
         {
             for (var curSpot = (int)from + 1; curSpot < (int)to; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (Board.IsTheSpotBlock((SquareSpot)curSpot, piece))
+                if (!PiceCanPassTheSpot((SquareSpot)curSpot, piece))
                     return false;
             }
 
+            return true;
+        }
+
+        private bool PiceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece)
+        {
+            if (Board.IsSafeSpot(selectedSpot) || !Board.PiecesAtSquare.ContainsKey(selectedSpot))
+                return true;
+
+            var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
+            foreach (var color in colors)
+            {
+                if (piece.Color == color) continue;
+                var getPieces = from p in Board.PiecesAtSquare[selectedSpot]
+                                where p.Color == color
+                                select p;
+                if (getPieces.Count() == 2)
+                    return false;
+            }
             return true;
         }
 
@@ -220,7 +315,7 @@ namespace LudoGame
         {
             for (var curSpot = (int)from + 1; curSpot <= (int)piece.EndingSpot; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (Board.IsTheSpotBlock((SquareSpot)curSpot, piece))
+                if (!PiceCanPassTheSpot((SquareSpot)curSpot, piece))
                     return false;
             }
 

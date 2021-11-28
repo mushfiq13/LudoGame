@@ -16,8 +16,6 @@ namespace LudoGame
         void AddPlayer(string name, BoardLayer layer);        
 
         bool IsSafeSpot(SquareSpot selectedSpot);
-        bool IsTheSpotBlock(SquareSpot selectedSpot, IPiece piece);
-        (IPiece, IPiece)? SpotHasSamePiece(SquareSpot selectedSpot, IPiece piece);
 
         void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot);
         void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot);
