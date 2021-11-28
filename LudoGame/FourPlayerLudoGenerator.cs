@@ -19,13 +19,16 @@ namespace LudoGame
             inputGenerator = new FourPlayerLudoInputGenerator();
         }
 
-        public void SetInitialPlayer(IPlayer player) => Board.CurrentPlayer = player;
+        public void SetInitialPlayer() => Board.CurrentPlayer = Board.Players.First();
 
         public bool StartGame() => Board.Players.Where(player => player.CanPlay()).Count() >= 2;
 
         public void PlayGame()
         {
-            SetInitialPlayer(Board.Players[(int)BoardLayer.First - 1]);
+            if (!StartGame())
+                throw new InvalidOperationException("Players must be at least 2.");
+            
+            SetInitialPlayer();
 
             if (Board.CurrentPlayer == null) return;
 
@@ -33,22 +36,13 @@ namespace LudoGame
 
             while (!Board.PlayersRanked())
             {
-                Console.WriteLine();
-                foreach (var i in Board.PiecesAtSquare)
-                {
-                    Console.WriteLine((int)i.Key + ".");
-                    foreach (var j in i.Value)
-                        Console.Write($"({j.Id}, {j.Color}), ");
-                    Console.WriteLine();
-                }
-                Console.WriteLine();
                 outputProcessor.PlayerStatus(Board.CurrentPlayer);
 
                 if (Board.CurrentPlayer.CanPlay())
                 {
                     Board.CurrentPlayer.RollDice(Board.Dice);
                     outputProcessor.PrintDiceValue(Board.Dice.CurrentValue.Value);
-                    MoveAPiece();
+                    MovePieceIfPossible();
                 }
                 
                 if (!Board.CurrentPlayer.CanPlay() && !ranked.ContainsKey(Board.CurrentPlayer.Layer))
@@ -74,39 +68,45 @@ namespace LudoGame
             return false;
         }
 
-        private bool MoveAPiece()
+        private bool MovePieceIfPossible()
         {
             if (Board.CurrentPlayer == null || Board.Dice.CurrentValue == null)
             {
                 return false;
             }
 
-            var possiblePosition = GetPiecesNextPossiblePosition(Board.CurrentPlayer, Board.Dice.CurrentValue.Value);             
+            var piecesNextPossiblePosition = GetPiecesNextPossiblePosition(Board.CurrentPlayer, Board.Dice.CurrentValue.Value);             
 
-            if (!AnyPieceCanMove(possiblePosition))
+            if (!AnyPieceCanMove(piecesNextPossiblePosition))
             {
                 return false;
             }            
 
-            var option = ChooseOption(possiblePosition);
-            var pieces = possiblePosition[option];
-            
-            if (pieces.Item2.HasValue)
+            var option = ChooseOption(piecesNextPossiblePosition);
+            var pieces = piecesNextPossiblePosition[option].Item1;
+            var possibleSpot = piecesNextPossiblePosition[option].Item2;
+            var possibleHome = piecesNextPossiblePosition[option].Item3;
+
+            if (possibleSpot.HasValue)
             {
-                if (pieces.Item1.Count == 1) Board.KillOthersIfPossible(pieces.Item1[0], pieces.Item2.Value);
-                else Board.KillOthersIfPossible((pieces.Item1[0], pieces.Item1[1]), pieces.Item2.Value);
+                if (pieces.Count == 1)
+                    Board.KillOthersIfPossible(pieces[0], possibleSpot.Value);
+                else
+                    Board.KillOthersIfPossible((pieces[0], pieces[1]), possibleSpot.Value);
             }
 
-            foreach (var p in pieces.Item1)
+            foreach (var piece in pieces)
             {
-                if (pieces.Item2.HasValue)
-                {
-                    RemovePieceFromSpot(p);
-                    Board.CurrentPlayer.MovePiece(p, pieces.Item2.Value);
-                    AddPieceToSpot(p);
+                RemovePieceFromSpot(piece);
+                if (possibleSpot.HasValue)
+                {                    
+                    Board.CurrentPlayer.MovePiece(piece, possibleSpot.Value);
+                    AddPieceToSpot(piece);
                 }
-                else if (pieces.Item3.HasValue)
-                    Board.CurrentPlayer.MovePiece(p, pieces.Item3.Value);
+                else if (possibleHome.HasValue)
+                {
+                    Board.CurrentPlayer.MovePiece(piece, possibleHome.Value);
+                }
             }
 
             return true;
@@ -121,11 +121,11 @@ namespace LudoGame
                 Board.PiecesAtSquare.Add(piece.CurrentSpot.Value, piece);
         }
 
-        private void PrintPossibleOptions(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> position)
+        private void PrintPossibleOptions(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> piecesPosition)
         {
-            for (int i = 0; i < position.Count; i++)
+            for (int i = 0; i < piecesPosition.Count; i++)
             {
-                var pieceInfo = position[i];
+                var pieceInfo = piecesPosition[i];
                
                 outputProcessor.PrintOptionNumber(i + 1);
                 
@@ -136,21 +136,21 @@ namespace LudoGame
             }
         }
 
-        private int ChooseOption(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> possiblePosition)
+        private int ChooseOption(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> piecesPosition)
         {
-            PrintPossibleOptions(possiblePosition);
+            PrintPossibleOptions(piecesPosition);
 
             int option;
 
-            do { option = inputGenerator.ChoosePiece(possiblePosition.Count) - 1; }
-            while (option < 0 || option >= possiblePosition.Count ||
-                    (!possiblePosition[option].Item2.HasValue && !possiblePosition[option].Item3.HasValue));
+            do { option = inputGenerator.ChoosePiece(piecesPosition.Count) - 1; }
+            while (option < 0 || option >= piecesPosition.Count ||
+                    (!piecesPosition[option].Item2.HasValue && !piecesPosition[option].Item3.HasValue));
 
             return option;
         }
 
-        private bool AnyPieceCanMove(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> position) =>
-            position.Where(p => (p.Item2.HasValue || p.Item3.HasValue) == true).Any();
+        private bool AnyPieceCanMove(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> piecesPossiblePosition) =>
+            piecesPossiblePosition.Where(p => (p.Item2.HasValue || p.Item3.HasValue)).Select(x => x).Any();
 
         private IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> GetPiecesNextPossiblePosition(IPlayer player, int diceValue)
         {            
@@ -171,7 +171,6 @@ namespace LudoGame
                             getDoublePieces.Item2, getDoublePieces.Item3));
                         pieceStatus[getDoublePieces.Item1.Value.Item1.Id] = true;
                         pieceStatus[getDoublePieces.Item1.Value.Item2.Id] = true;
-                        Console.WriteLine("double pieces!");
                         continue;
                     }
                 }
@@ -179,21 +178,7 @@ namespace LudoGame
                 var position = GetPositionIfPossibleForSinglePiece(piece, diceValue);
                 possiblePosition.Add((new List<IPiece> { piece }, position.Item1, position.Item2));
                 pieceStatus[piece.Id] = true;
-                Console.WriteLine("Single pieces!");
-            }
-
-            //for (var i = 0; i < 4; ++i)
-            //{
-            //    IPiece piece = player.Pieces[i];
-
-            //    if (pieceStatus.ContainsKey(piece.Id) && pieceStatus[piece.Id]) continue;
-
-            //    var selectedPieces = GetSingleOrDoublePieces(piece, diceValue);
-            //    possiblePosition.Add(selectedPieces);
-
-            //    foreach (var p in selectedPieces.Item1)
-            //        pieceStatus[p.Id] = true;
-            //}
+            }            
 
             return possiblePosition;
         }
@@ -228,33 +213,6 @@ namespace LudoGame
             return (position.Item1, position.Item2);
         }
 
-        private (IList<IPiece>, SquareSpot?, HomeColumn?) GetSingleOrDoublePieces(IPiece selectedPiece, int diceValue)
-        {
-            (SquareSpot?, HomeColumn?) position;
-
-            if (selectedPiece.CurrentSpot.HasValue)
-            {
-                var doublePieces = SpotHasSamePiece(selectedPiece.CurrentSpot.Value, selectedPiece);
-                if (doublePieces != null && doublePieces.Value.Item1.Color == selectedPiece.Color)
-                {
-                    if ((diceValue & 1) == 1)
-                        return (new List<IPiece> { doublePieces.Value.Item1, doublePieces.Value.Item2 }, null, null);
-
-                    position = GetPosition(doublePieces.Value.Item1, diceValue / 2);
-                    return (new List<IPiece> { doublePieces.Value.Item1, doublePieces.Value.Item2 }, position.Item1, position.Item2);
-                }
-            }
-
-            position = GetPosition(selectedPiece, diceValue);
-
-            if (!IsPathValidForSinglePiece(selectedPiece, (position.Item1, position.Item2)))
-            {
-                return (new List<IPiece> { selectedPiece }, null, null);
-            }
-
-            return (new List<IPiece> { selectedPiece }, position.Item1, position.Item2);
-        }
-
         private (IPiece, IPiece)? SpotHasSamePiece(SquareSpot selectedSpot, IPiece piece)
         {
             if (!Board.PiecesAtSquare.ContainsKey(selectedSpot)) return null;
@@ -270,6 +228,7 @@ namespace LudoGame
 
         private bool IsPathValidForSinglePiece(IPiece selectedPiece, (SquareSpot?, HomeColumn?) destination)
         {
+            if (selectedPiece.IsMatured) return false;
             // piece is at inside layer...
             if (!selectedPiece.CurrentSpot.HasValue && !selectedPiece.CurrentHome.HasValue && destination.Item1.HasValue) return true;
 

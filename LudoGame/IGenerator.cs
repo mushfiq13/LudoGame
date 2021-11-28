@@ -10,7 +10,7 @@ namespace LudoGame
     {
         IBoard Board { get; }
 
-        void SetInitialPlayer(IPlayer player);
+        void SetInitialPlayer();
         bool StartGame();
         void PlayGame();
     }

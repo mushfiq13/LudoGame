@@ -11,7 +11,7 @@ namespace LudoGame
         public IDice Dice { get; private set; }
         public IList<IPlayer> Players { get; private set; }
         public IPlayer? CurrentPlayer { get; set; }
-        public IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
+        public IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; private set; }
 
         public FourPlayerBoard()
         {
@@ -77,14 +77,7 @@ namespace LudoGame
                         pieces.Add(i);
                 }
             }
-            if (pieces.Count > 0)
-            {
-                foreach (var item in pieces)
-                {
-                    Console.Write(item.Id + ", " + item.Color + " .. ");
-                }
-                Console.WriteLine();
-            }
+            
             return pieces;
         }
 
