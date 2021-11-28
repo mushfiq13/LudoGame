@@ -20,6 +20,8 @@ namespace LudoGame
         void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot);
         void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot);
 
+        IList<IPiece>? GetSameTypeOfPieces(SquareSpot selectedSpot, Color pieceType);
+
         bool PlayersRanked();
     }
 }

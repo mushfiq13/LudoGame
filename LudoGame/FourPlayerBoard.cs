@@ -56,29 +56,30 @@ namespace LudoGame
 
         public bool PlayersRanked() => !(Players.Where(player => player.CanPlay() == true).Any());
 
-        private IList<IPiece> GetKillingPieces(SquareSpot killingSpot, Color killWithoutThisColor, Predicate<IList<IPiece>> check)
+        public IList<IPiece>? GetSameTypeOfPieces(SquareSpot selectedSpot, Color pieceType)
         {
-            IList<IPiece> pieces = new List<IPiece>();
+            if (!PiecesAtSquare.ContainsKey(selectedSpot)) return null;
+            return PiecesAtSquare[selectedSpot].Where(piece => piece.Color == pieceType).Select(piece => piece).ToList();
+        }
 
-            if (!PiecesAtSquare.ContainsKey(killingSpot)) return pieces;
-
+        private IList<IPiece> GetKillingPieces(SquareSpot killingSpot, Color killWithoutThisColor, Predicate<IList<IPiece>> checkPiecesCanAdd)
+        {
+            IList<IPiece> killingPieces = new List<IPiece>();
             var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
+
             foreach (var color in colors)
             {
                 if (color == killWithoutThisColor) continue;
 
-                var getSamePieces = (from piece in PiecesAtSquare[killingSpot]
-                                     where piece.Color == color
-                                     select piece).ToList();
+                var getSamePieces = GetSameTypeOfPieces(killingSpot, color);
 
-                if (check(getSamePieces))
-                {
-                    foreach (var i in getSamePieces)
-                        pieces.Add(i);
-                }
+                if (getSamePieces == null || !checkPiecesCanAdd(getSamePieces)) continue;
+                
+                foreach (var i in getSamePieces)
+                    killingPieces.Add(i);
             }
             
-            return pieces;
+            return killingPieces;
         }
 
         public void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot)

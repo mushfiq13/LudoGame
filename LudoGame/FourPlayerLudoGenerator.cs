@@ -254,19 +254,20 @@ namespace LudoGame
 
         private bool PiceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece)
         {
-            if (Board.IsSafeSpot(selectedSpot) || !Board.PiecesAtSquare.ContainsKey(selectedSpot))
+            if (Board.IsSafeSpot(selectedSpot))
                 return true;
 
             var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
             foreach (var color in colors)
             {
                 if (piece.Color == color) continue;
-                var getPieces = from p in Board.PiecesAtSquare[selectedSpot]
-                                where p.Color == color
-                                select p;
-                if (getPieces.Count() == 2)
+
+                var getPieces = Board.GetSameTypeOfPieces(selectedSpot, color);
+                 
+                if (getPieces != null && getPieces.Count() == 2)
                     return false;
             }
+
             return true;
         }
 
