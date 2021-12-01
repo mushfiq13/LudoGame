@@ -187,7 +187,7 @@ namespace LudoGame
         {                        
             if (!Board.IsSafeSpot(selectedSpot))
             {
-                var doublePieces = SpotHasSamePiece(selectedSpot, selectedPiece);
+                var doublePieces = GetEvenPiecesIfPossible(selectedSpot, selectedPiece);
                 if (doublePieces != null)
                 {
                     if ((diceValue % 2 != 0))
@@ -213,15 +213,10 @@ namespace LudoGame
             return (position.Item1, position.Item2);
         }
 
-        private (IPiece, IPiece)? SpotHasSamePiece(SquareSpot selectedSpot, IPiece piece)
+        private (IPiece, IPiece)? GetEvenPiecesIfPossible(SquareSpot selectedSpot, IPiece piece)
         {
-            if (!Board.PiecesAtSquare.ContainsKey(selectedSpot)) return null;
-
-            var pieces = (from p in Board.PiecesAtSquare[selectedSpot]
-                          where p.Color.Equals(piece.Color)
-                          select p);
-
-            return (pieces.Count() == 2)
+            var pieces = Board.GetSameTypeOfPieces(selectedSpot, piece.Color);
+            return (pieces != null && pieces.Count() == 2)
                     ? (pieces.First(), pieces.Last())
                     : null;
         }
