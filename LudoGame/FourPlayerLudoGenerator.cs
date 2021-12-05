@@ -187,7 +187,7 @@ namespace LudoGame
         {                        
             if (!Board.IsSafeSpot(selectedSpot))
             {
-                var doublePieces = GetEvenPiecesIfPossible(selectedSpot, selectedPiece);
+                var doublePieces = GetDoublePiecesIfPossible(selectedSpot, selectedPiece);
                 if (doublePieces != null)
                 {
                     if ((diceValue % 2 != 0))
@@ -213,7 +213,7 @@ namespace LudoGame
             return (position.Item1, position.Item2);
         }
 
-        private (IPiece, IPiece)? GetEvenPiecesIfPossible(SquareSpot selectedSpot, IPiece piece)
+        private (IPiece, IPiece)? GetDoublePiecesIfPossible(SquareSpot selectedSpot, IPiece piece)
         {
             var pieces = Board.GetSameTypeOfPieces(selectedSpot, piece.Color);
             return (pieces != null && pieces.Count() == 2)
@@ -240,26 +240,7 @@ namespace LudoGame
         {
             for (var curSpot = (int)from + 1; curSpot < (int)to; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (!PiceCanPassTheSpot((SquareSpot)curSpot, piece))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private bool PiceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece)
-        {
-            if (Board.IsSafeSpot(selectedSpot))
-                return true;
-
-            var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
-            foreach (var color in colors)
-            {
-                if (piece.Color == color) continue;
-
-                var getPieces = Board.GetSameTypeOfPieces(selectedSpot, color);
-                 
-                if (getPieces != null && getPieces.Count() == 2)
+                if (!Board.PiceCanPassTheSpot((SquareSpot)curSpot, piece))
                     return false;
             }
 
@@ -270,7 +251,7 @@ namespace LudoGame
         {
             for (var curSpot = (int)from + 1; curSpot <= (int)piece.EndingSpot; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (!PiceCanPassTheSpot((SquareSpot)curSpot, piece))
+                if (!Board.PiceCanPassTheSpot((SquareSpot)curSpot, piece))
                     return false;
             }
 

@@ -62,6 +62,25 @@ namespace LudoGame
             return PiecesAtSquare[selectedSpot].Where(piece => piece.Color == pieceType).Select(piece => piece).ToList();
         }
 
+        public bool PiceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece)
+        {
+            if (IsSafeSpot(selectedSpot))
+                return true;
+
+            var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
+            foreach (var color in colors)
+            {
+                if (piece.Color == color) continue;
+
+                var getPieces = GetSameTypeOfPieces(selectedSpot, color);
+
+                if (getPieces != null && getPieces.Count() == 2)
+                    return false;
+            }
+
+            return true;
+        }
+
         private IList<IPiece> GetKillingPieces(SquareSpot killingSpot, Color killWithoutThisColor, Predicate<IList<IPiece>> checkPiecesCanAdd)
         {
             IList<IPiece> killingPieces = new List<IPiece>();
