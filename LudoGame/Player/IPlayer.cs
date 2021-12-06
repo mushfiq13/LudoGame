@@ -18,6 +18,6 @@ namespace LudoGame
         bool CanPlay();
         
         void MovePiece(IPiece piece, SquareSpot destSpot);
-        void MovePiece(IPiece piece, HomeColumn destHome);
+        void MovePiece(IPiece piece, Home destHome);
     }
 }

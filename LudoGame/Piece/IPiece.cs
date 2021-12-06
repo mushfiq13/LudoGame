@@ -11,7 +11,7 @@ namespace LudoGame
         PieceNumber Id { get; }
         Color Color { get; }
         SquareSpot? CurrentSpot { get; set; }
-        HomeColumn? CurrentHome { get; set; }
+        Home? CurrentHome { get; set; }
         bool IsMatured { get; set; }
         SquareSpot StartingSpot { get; }
         SquareSpot EndingSpot { get; }
@@ -19,7 +19,7 @@ namespace LudoGame
         bool FromSquareSpotToSquareSpot(int diceValue);
         
         void Move(SquareSpot destSpot);
-        void Move(HomeColumn destSpot);
+        void Move(Home destSpot);
 
         bool IsLocked();
         void Kill();

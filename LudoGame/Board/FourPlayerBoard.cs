@@ -25,12 +25,10 @@ namespace LudoGame
         private IList<IPiece> AddPieces(BoardLayer layer)
         {
             IList<IPiece> pieces = new List<IPiece>();
-
             for (var pieceId = 1; pieceId <= 4; ++pieceId)
             {
                 pieces.Add(CreatePiece(layer, (PieceNumber)pieceId));
             }
-
             return pieces;
         }
 
@@ -40,14 +38,14 @@ namespace LudoGame
         {            
             switch ((PieceSafeSpot)((int)selectedSpot))
             {
-                case PieceSafeSpot.Zero:
-                case PieceSafeSpot.Nineth:
-                case PieceSafeSpot.Thirteenth:
-                case PieceSafeSpot.TwentySecond:
-                case PieceSafeSpot.TwentySixth:
-                case PieceSafeSpot.ThirtyFifth:
-                case PieceSafeSpot.ThirtyNineth:
-                case PieceSafeSpot.FourtyEighth:
+                case PieceSafeSpot.First:
+                case PieceSafeSpot.Tenth:
+                case PieceSafeSpot.Fourteenth:
+                case PieceSafeSpot.TwentyThird:
+                case PieceSafeSpot.TwentySeventh:
+                case PieceSafeSpot.ThirtySixth:
+                case PieceSafeSpot.Fortieth:
+                case PieceSafeSpot.FourtyNineth:
                     return true;
             }
 
@@ -62,44 +60,29 @@ namespace LudoGame
             return PiecesAtSquare[selectedSpot].Where(piece => piece.Color == pieceType).Select(piece => piece).ToList();
         }
 
-        public bool PiceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece)
+        private IList<IPiece> GetPieces(SquareSpot selectedSpot, Color withoutThisColor, Predicate<IList<IPiece>> checkPiecesCanAdd)
         {
-            if (IsSafeSpot(selectedSpot))
-                return true;
-
+            List<IPiece> pieces = new List<IPiece>();
             var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
+
             foreach (var color in colors)
             {
-                if (piece.Color == color) continue;
+                if (withoutThisColor == color) continue;
 
                 var getPieces = GetSameTypeOfPieces(selectedSpot, color);
+                if (getPieces == null || !checkPiecesCanAdd(getPieces)) continue;
 
-                if (getPieces != null && getPieces.Count() == 2)
-                    return false;
+                pieces.AddRange(getPieces);
             }
 
-            return true;
+            return pieces;
         }
 
-        private IList<IPiece> GetKillingPieces(SquareSpot killingSpot, Color killWithoutThisColor, Predicate<IList<IPiece>> checkPiecesCanAdd)
-        {
-            IList<IPiece> killingPieces = new List<IPiece>();
-            var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
+        public bool PieceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece) =>
+            IsSafeSpot(selectedSpot) || !GetPieces(selectedSpot, piece.Color, pieces => pieces.Count() == 2).Any();
 
-            foreach (var color in colors)
-            {
-                if (color == killWithoutThisColor) continue;
-
-                var getSamePieces = GetSameTypeOfPieces(killingSpot, color);
-
-                if (getSamePieces == null || !checkPiecesCanAdd(getSamePieces)) continue;
-                
-                foreach (var i in getSamePieces)
-                    killingPieces.Add(i);
-            }
-            
-            return killingPieces;
-        }
+        private IList<IPiece> GetKillingPieces(SquareSpot killingSpot, Color killWithoutThisColor, Predicate<IList<IPiece>> checkPiecesCanKill)
+            => GetPieces(killingSpot, killWithoutThisColor, checkPiecesCanKill);
 
         public void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot)
         {

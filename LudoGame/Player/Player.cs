@@ -27,6 +27,6 @@ namespace LudoGame
         
         public void MovePiece(IPiece piece, SquareSpot destSpot) => piece.Move(destSpot);
 
-        public void MovePiece(IPiece piece, HomeColumn destHome) => piece.Move(destHome);       
+        public void MovePiece(IPiece piece, Home destHome) => piece.Move(destHome);       
     }
 }

@@ -21,7 +21,7 @@ namespace LudoGame
         void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot);
 
         IList<IPiece>? GetSameTypeOfPieces(SquareSpot selectedSpot, Color pieceType);
-        bool PiceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece);
+        bool PieceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece);
 
         bool PlayersRanked();
     }

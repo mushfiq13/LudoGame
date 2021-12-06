@@ -9,13 +9,13 @@ namespace LudoGame
     public class FourPlayerLudoGenerator : IGenerator
     {
         public IBoard Board { get; private set; }
-        private FourPlayerLudoOutputProcessor outputProcessor;
+        private FourPlayerLudoOutputGenerator outputProcessor;
         private FourPlayerLudoInputGenerator inputGenerator;
 
         public FourPlayerLudoGenerator(IBoard board)
         {
             Board = board;
-            outputProcessor = new FourPlayerLudoOutputProcessor();
+            outputProcessor = new FourPlayerLudoOutputGenerator();
             inputGenerator = new FourPlayerLudoInputGenerator();
         }
 
@@ -121,7 +121,7 @@ namespace LudoGame
                 Board.PiecesAtSquare.Add(piece.CurrentSpot.Value, piece);
         }
 
-        private void PrintPossibleOptions(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> piecesPosition)
+        private void PrintPossibleOptions(IList<(IList<IPiece>, SquareSpot?, Home?)> piecesPosition)
         {
             for (int i = 0; i < piecesPosition.Count; i++)
             {
@@ -136,7 +136,7 @@ namespace LudoGame
             }
         }
 
-        private int ChooseOption(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> piecesPosition)
+        private int ChooseOption(IList<(IList<IPiece>, SquareSpot?, Home?)> piecesPosition)
         {
             PrintPossibleOptions(piecesPosition);
 
@@ -149,12 +149,12 @@ namespace LudoGame
             return option;
         }
 
-        private bool AnyPieceCanMove(IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> piecesPossiblePosition) =>
+        private bool AnyPieceCanMove(IList<(IList<IPiece>, SquareSpot?, Home?)> piecesPossiblePosition) =>
             piecesPossiblePosition.Where(p => (p.Item2.HasValue || p.Item3.HasValue)).Select(x => x).Any();
 
-        private IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> GetPiecesNextPossiblePosition(IPlayer player, int diceValue)
+        private IList<(IList<IPiece>, SquareSpot?, Home?)> GetPiecesNextPossiblePosition(IPlayer player, int diceValue)
         {            
-            IList<(IList<IPiece>, SquareSpot?, HomeColumn?)> possiblePosition = new List<(IList<IPiece>, SquareSpot?, HomeColumn?)>();
+            IList<(IList<IPiece>, SquareSpot?, Home?)> possiblePosition = new List<(IList<IPiece>, SquareSpot?, Home?)>();
             IDictionary<PieceNumber, bool> pieceStatus = new Dictionary<PieceNumber, bool>();
             
             foreach (var piece in player.Pieces)
@@ -183,7 +183,7 @@ namespace LudoGame
             return possiblePosition;
         }
 
-        private ((IPiece, IPiece)?, SquareSpot?, HomeColumn?) GetDoublePiecesIfSpotHasSameType(SquareSpot selectedSpot, IPiece selectedPiece, int diceValue)
+        private ((IPiece, IPiece)?, SquareSpot?, Home?) GetDoublePiecesIfSpotHasSameType(SquareSpot selectedSpot, IPiece selectedPiece, int diceValue)
         {                        
             if (!Board.IsSafeSpot(selectedSpot))
             {
@@ -201,7 +201,7 @@ namespace LudoGame
             return (null, null, null);
         }
 
-        private (SquareSpot?, HomeColumn?) GetPositionIfPossibleForSinglePiece(IPiece selectedPiece, int diceValue)
+        private (SquareSpot?, Home?) GetPositionIfPossibleForSinglePiece(IPiece selectedPiece, int diceValue)
         {
             var position = GetPosition(selectedPiece, diceValue);
 
@@ -221,7 +221,7 @@ namespace LudoGame
                     : null;
         }
 
-        private bool IsPathValidForSinglePiece(IPiece selectedPiece, (SquareSpot?, HomeColumn?) destination)
+        private bool IsPathValidForSinglePiece(IPiece selectedPiece, (SquareSpot?, Home?) destination)
         {
             if (selectedPiece.IsMatured) return false;
             // piece is at inside layer...
@@ -238,32 +238,32 @@ namespace LudoGame
 
         private bool ValidatePath(SquareSpot from, SquareSpot to, IPiece piece)
         {
-            for (var curSpot = (int)from + 1; curSpot < (int)to; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
+            for (var curSpot = (int)from + 1; curSpot < (int)to; curSpot = (curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (!Board.PiceCanPassTheSpot((SquareSpot)curSpot, piece))
+                if (!Board.PieceCanPassTheSpot((SquareSpot)curSpot, piece))
                     return false;
             }
 
             return true;
         }
 
-        private bool ValidatePath(SquareSpot from, HomeColumn to, IPiece piece)
+        private bool ValidatePath(SquareSpot from, Home to, IPiece piece)
         {
-            for (var curSpot = (int)from + 1; curSpot <= (int)piece.EndingSpot; curSpot = ((int)curSpot + 1) % GlobalConstant.MaxSpot)
+            for (var curSpot = (int)from + 1; curSpot <= (int)piece.EndingSpot; curSpot = (curSpot + 1) % GlobalConstant.MaxSpot)
             {
-                if (!Board.PiceCanPassTheSpot((SquareSpot)curSpot, piece))
+                if (!Board.PieceCanPassTheSpot((SquareSpot)curSpot, piece))
                     return false;
             }
 
             return true;
         }
 
-        private (SquareSpot?, HomeColumn?) GetPosition(IPiece piece, int diceValue)
+        private (SquareSpot?, Home?) GetPosition(IPiece piece, int diceValue)
         {
             if (piece.IsMatured) return (null, null);
 
             SquareSpot? squareSpot = piece.CurrentSpot;
-            HomeColumn? homeColumn = piece.CurrentHome;
+            Home? homeColumn = piece.CurrentHome;
 
             if (!squareSpot.HasValue && !homeColumn.HasValue)
             {
@@ -273,7 +273,7 @@ namespace LudoGame
             if (!squareSpot.HasValue && homeColumn.HasValue)
             {
                 var toHome = (int)homeColumn + diceValue;
-                return (toHome <= (int)HomeColumn.Fifth) ? (null, (HomeColumn)toHome) : (null, null);
+                return (toHome <= (int)Home.Triangle) ? (null, (Home)toHome) : (null, null);
             }
 
             if (squareSpot.HasValue && !homeColumn.HasValue)
@@ -281,7 +281,7 @@ namespace LudoGame
                 var toSquare = (int)squareSpot + diceValue;
                 return piece.FromSquareSpotToSquareSpot(diceValue)
                         ? ((SquareSpot)(toSquare % GlobalConstant.MaxSpot), null)
-                        : (null, (HomeColumn)(toSquare - (int)piece.EndingSpot - 1));
+                        : (null, (Home)(toSquare - (int)piece.EndingSpot - 1));
             }
 
             return (null, null);

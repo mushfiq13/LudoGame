@@ -11,7 +11,7 @@ namespace LudoGame
         public PieceNumber Id { get; private set; }
         public Color Color { get; private set; }
         public SquareSpot? CurrentSpot { get; set; }
-        public HomeColumn? CurrentHome { get; set; }
+        public Home? CurrentHome { get; set; }
         public bool IsMatured { get; set; }
         public SquareSpot StartingSpot { get; private set; }
         public SquareSpot EndingSpot { get; private set; }
@@ -21,15 +21,15 @@ namespace LudoGame
             Id = id;
             Color = (Color)(int)layer;
             IsMatured = false;
-            StartingSpot = GlobalConstant.StartingSpot[(int)layer - 1];
-            EndingSpot = GlobalConstant.EndingSpot[(int)layer - 1];
+            StartingSpot = GlobalConstant.StartingSpot[(int)layer];
+            EndingSpot = GlobalConstant.EndingSpot[(int)layer];
         }
 
         public bool FromSquareSpotToSquareSpot(int diceValue)
         {
             if (!CurrentSpot.HasValue) return false;
 
-            if (EndingSpot == SquareSpot.Fiftieth)
+            if (EndingSpot == SquareSpot.FiftyFirst)
             {
                 return (int)CurrentSpot + diceValue <= (int)EndingSpot;                        
             }
@@ -39,13 +39,13 @@ namespace LudoGame
 
         public void Move(SquareSpot destSpot) => CurrentSpot = destSpot;        
 
-        public void Move(HomeColumn destHome)
+        public void Move(Home destHome)
         {
             if (CurrentSpot != null) CurrentSpot = null;
 
             CurrentHome = destHome;
             
-            if (CurrentHome == HomeColumn.Fifth) Matured();            
+            if (CurrentHome == Home.Triangle) SetAsMatured();            
         }
 
         public bool IsLocked() => CurrentSpot != null || CurrentHome != null || !IsMatured;        
@@ -57,7 +57,7 @@ namespace LudoGame
             IsMatured = false;
         }
 
-        private void Matured()
+        private void SetAsMatured()
         {
             CurrentSpot = null;
             CurrentHome = null;

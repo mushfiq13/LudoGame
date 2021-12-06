@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LudoGame
 {
-    public class FourPlayerLudoOutputProcessor
+    public class FourPlayerLudoOutputGenerator
     {
         public void PlayerStatus(IPlayer? player)
         {
@@ -48,7 +48,7 @@ namespace LudoGame
             {
                 Console.WriteLine($"be placed at {value} square");
             }
-            else if (value != null && value.GetType() == typeof(HomeColumn))
+            else if (value != null && value.GetType() == typeof(Home))
             {
                 Console.WriteLine($"be placed at {value} home-column");
             }
