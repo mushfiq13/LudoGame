@@ -14,14 +14,14 @@ namespace LudoGame
         Home? CurrentHome { get; set; }
         bool IsMatured { get; set; }
         SquareSpot StartingSpot { get; }
-        SquareSpot EndingSpot { get; }
-
-        bool FromSquareSpotToSquareSpot(int diceValue);
+        SquareSpot EndingSpot { get; }        
         
         void Move(SquareSpot destSpot);
         void Move(Home destSpot);
 
         bool IsLocked();
         void Kill();
+
+        (SquareSpot?, Home?) GetWhereCanMove(int diceValue);
     }
 }

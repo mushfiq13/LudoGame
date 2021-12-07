@@ -25,18 +25,6 @@ namespace LudoGame
             EndingSpot = GlobalConstant.EndingSpot[(int)layer];
         }
 
-        public bool FromSquareSpotToSquareSpot(int diceValue)
-        {
-            if (!CurrentSpot.HasValue) return false;
-
-            if (EndingSpot == SquareSpot.FiftyFirst)
-            {
-                return (int)CurrentSpot + diceValue <= (int)EndingSpot;                        
-            }
-
-            return ((int)CurrentSpot > (int)EndingSpot || (int)CurrentSpot + diceValue <= (int)EndingSpot);            
-        }
-
         public void Move(SquareSpot destSpot) => CurrentSpot = destSpot;        
 
         public void Move(Home destHome)
@@ -48,6 +36,13 @@ namespace LudoGame
             if (CurrentHome == Home.Triangle) SetAsMatured();            
         }
 
+        private void SetAsMatured()
+        {
+            CurrentSpot = null;
+            CurrentHome = null;
+            IsMatured = true;
+        }
+
         public bool IsLocked() => CurrentSpot != null || CurrentHome != null || !IsMatured;        
 
         public void Kill()
@@ -57,11 +52,40 @@ namespace LudoGame
             IsMatured = false;
         }
 
-        private void SetAsMatured()
+        public (SquareSpot?, Home?) GetWhereCanMove(int diceValue)
         {
-            CurrentSpot = null;
-            CurrentHome = null;
-            IsMatured = true;
+            if (!IsMatured && !CurrentSpot.HasValue && !CurrentHome.HasValue)
+            {
+                return diceValue == 6 ? (StartingSpot, null) : (null, null);
+            }
+
+            if (!CurrentSpot.HasValue && CurrentHome.HasValue)
+            {
+                var toHome = (int)CurrentHome + diceValue;
+                return (toHome <= (int)Home.Triangle) ? (null, (Home)toHome) : (null, null);
+            }
+
+            if (CurrentSpot.HasValue && !CurrentHome.HasValue)
+            {
+                var toSquare = (int)CurrentSpot + diceValue;
+                return CanMoveFromSpotToSpot(diceValue)
+                        ? ((SquareSpot)(toSquare % GlobalConstant.MaxSpot), null)
+                        : (null, (Home)(toSquare - (int)EndingSpot - 1));
+            }
+
+            return (null, null);
+        }
+
+        private bool CanMoveFromSpotToSpot(int diceValue)
+        {
+            if (!CurrentSpot.HasValue) return false;
+
+            if (EndingSpot == SquareSpot.FiftyFirst)
+            {
+                return (int)CurrentSpot + diceValue <= (int)EndingSpot;
+            }
+
+            return ((int)CurrentSpot > (int)EndingSpot || (int)CurrentSpot + diceValue <= (int)EndingSpot);
         }
     }
 }

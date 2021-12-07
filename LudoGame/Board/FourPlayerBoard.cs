@@ -20,8 +20,8 @@ namespace LudoGame
             PiecesAtSquare = new Dictionary<SquareSpot, List<IPiece>>();
         }
 
-        public void AddPlayer(string name, BoardLayer layer) => Players.Add(new Player(name, layer, AddPieces(layer)));        
-        
+        public void AddPlayer(string name, BoardLayer layer) => Players.Add(new Player(name, layer, AddPieces(layer)));
+
         private IList<IPiece> AddPieces(BoardLayer layer)
         {
             IList<IPiece> pieces = new List<IPiece>();
@@ -35,7 +35,7 @@ namespace LudoGame
         private IPiece CreatePiece(BoardLayer layer, PieceNumber pieceId) => new Piece(pieceId, layer);
 
         public bool IsSafeSpot(SquareSpot selectedSpot)
-        {            
+        {
             switch ((PieceSafeSpot)((int)selectedSpot))
             {
                 case PieceSafeSpot.First:
@@ -50,9 +50,7 @@ namespace LudoGame
             }
 
             return false;
-        }
-
-        public bool PlayersRanked() => !(Players.Where(player => player.CanPlay() == true).Any());
+        }        
 
         public IList<IPiece>? GetSameTypeOfPieces(SquareSpot selectedSpot, Color pieceType)
         {
@@ -78,23 +76,23 @@ namespace LudoGame
             return pieces;
         }
 
-        public bool PieceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece) =>
+        public bool CanPiecePassTheSpot(SquareSpot selectedSpot, IPiece piece) =>
             IsSafeSpot(selectedSpot) || !GetPieces(selectedSpot, piece.Color, pieces => pieces.Count() == 2).Any();
 
         public void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot)
         {
-            if (!selectedPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;            
+            if (!selectedPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;
             Kill(GetPieces(othersSpot, selectedPiece.Color, piece => piece.Count() != 2),
                 othersSpot);
         }
 
         public void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot)
         {
-            if ( IsSafeSpot(othersSpot)) return;
+            if (IsSafeSpot(othersSpot)) return;
             if (selectedPieces.Item1.Color != selectedPieces.Item2.Color) return;
             if (selectedPieces.Item1.CurrentSpot != selectedPieces.Item2.CurrentSpot) return;
             if (!selectedPieces.Item1.CurrentSpot.HasValue || IsSafeSpot(selectedPieces.Item1.CurrentSpot.Value)) return;
-            
+
             Kill(GetPieces(othersSpot, selectedPieces.Item1.Color, piece => piece.Count() == 2),
                 othersSpot);
         }
@@ -107,5 +105,19 @@ namespace LudoGame
                 PiecesAtSquare.Remove(killingSpot, piece);
             }
         }
+
+        public void AddPieceToSpot(IPiece piece)
+        {
+            if (piece.CurrentSpot.HasValue)
+                PiecesAtSquare.Add(piece.CurrentSpot.Value, piece);
+        }
+
+        public void RemovePieceFromSpot(IPiece piece)
+        {
+            if (piece.CurrentSpot.HasValue)
+                PiecesAtSquare.Remove(piece.CurrentSpot.Value, piece);
+        }
+
+        public bool PlayersRanked() => !(Players.Where(player => player.CanPlay() == true).Any());
     }
 }

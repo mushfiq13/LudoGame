@@ -17,11 +17,14 @@ namespace LudoGame
 
         bool IsSafeSpot(SquareSpot selectedSpot);
 
+        IList<IPiece>? GetSameTypeOfPieces(SquareSpot selectedSpot, Color pieceType);
+        bool CanPiecePassTheSpot(SquareSpot selectedSpot, IPiece piece);
+
         void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot);
         void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot);
 
-        IList<IPiece>? GetSameTypeOfPieces(SquareSpot selectedSpot, Color pieceType);
-        bool PieceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece);
+        void RemovePieceFromSpot(IPiece piece);
+        void AddPieceToSpot(IPiece piece);
 
         bool PlayersRanked();
     }
