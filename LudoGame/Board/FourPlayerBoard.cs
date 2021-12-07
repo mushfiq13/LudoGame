@@ -60,7 +60,7 @@ namespace LudoGame
             return PiecesAtSquare[selectedSpot].Where(piece => piece.Color == pieceType).Select(piece => piece).ToList();
         }
 
-        private IList<IPiece> GetPieces(SquareSpot selectedSpot, Color withoutThisColor, Predicate<IList<IPiece>> checkPiecesCanAdd)
+        private IList<IPiece> GetPieces(SquareSpot selectedSpot, Color withoutThisColor, Predicate<IList<IPiece>> checkPiecesCanGet)
         {
             List<IPiece> pieces = new List<IPiece>();
             var colors = new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow };
@@ -70,7 +70,7 @@ namespace LudoGame
                 if (withoutThisColor == color) continue;
 
                 var getPieces = GetSameTypeOfPieces(selectedSpot, color);
-                if (getPieces == null || !checkPiecesCanAdd(getPieces)) continue;
+                if (getPieces == null || !checkPiecesCanGet(getPieces)) continue;
 
                 pieces.AddRange(getPieces);
             }
@@ -81,14 +81,10 @@ namespace LudoGame
         public bool PieceCanPassTheSpot(SquareSpot selectedSpot, IPiece piece) =>
             IsSafeSpot(selectedSpot) || !GetPieces(selectedSpot, piece.Color, pieces => pieces.Count() == 2).Any();
 
-        private IList<IPiece> GetKillingPieces(SquareSpot killingSpot, Color killWithoutThisColor, Predicate<IList<IPiece>> checkPiecesCanKill)
-            => GetPieces(killingSpot, killWithoutThisColor, checkPiecesCanKill);
-
         public void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot)
         {
             if (!selectedPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;            
-
-            Kill(GetKillingPieces(othersSpot, selectedPiece.Color, (collection) => collection.Count() != 2),
+            Kill(GetPieces(othersSpot, selectedPiece.Color, piece => piece.Count() != 2),
                 othersSpot);
         }
 
@@ -99,7 +95,7 @@ namespace LudoGame
             if (selectedPieces.Item1.CurrentSpot != selectedPieces.Item2.CurrentSpot) return;
             if (!selectedPieces.Item1.CurrentSpot.HasValue || IsSafeSpot(selectedPieces.Item1.CurrentSpot.Value)) return;
             
-            Kill(GetKillingPieces(othersSpot, selectedPieces.Item1.Color, (collection) => collection.Count() == 2),
+            Kill(GetPieces(othersSpot, selectedPieces.Item1.Color, piece => piece.Count() == 2),
                 othersSpot);
         }
 
