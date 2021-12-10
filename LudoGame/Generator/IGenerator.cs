@@ -8,10 +8,7 @@ namespace LudoGame
 {
     public interface IGenerator
     {
-        IBoard Board { get; }
-
-        void SetInitialPlayer();
-        bool StartGame();
+        void StartGame();
         void PlayGame();
     }
 }

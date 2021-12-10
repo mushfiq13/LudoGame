@@ -8,9 +8,9 @@ namespace LudoGame
 {
     public class FourPlayerLudoGenerator : IGenerator
     {
-        public IBoard Board { get; private set; }
-        private FourPlayerLudoOutputGenerator outputProcessor;
-        private FourPlayerLudoInputGenerator inputGenerator;
+        private IBoard Board { get; }
+        private FourPlayerLudoOutputGenerator outputProcessor { get; }
+        private FourPlayerLudoInputGenerator inputGenerator { get; }
 
         public FourPlayerLudoGenerator(IBoard board)
         {
@@ -19,33 +19,32 @@ namespace LudoGame
             inputGenerator = new FourPlayerLudoInputGenerator();
         }
 
-        public void SetInitialPlayer() => Board.CurrentPlayer = Board.Players.First();
+        public void StartGame()
+        {
+            if (Board.Players.Where(player => player.CanPlay).Count() < 2)
+                throw new InvalidOperationException("Starting players must be at least 2.");
 
-        public bool StartGame() => Board.Players.Where(player => player.CanPlay()).Count() >= 2;
+            Board.CurrentPlayer = Board.Players.First();
+        }
 
         public void PlayGame()
         {
-            if (!StartGame())
-                throw new InvalidOperationException("Players must be at least 2.");
-            
-            SetInitialPlayer();
-
-            if (Board.CurrentPlayer == null) return;
+            StartGame();
 
             var ranked = new Dictionary<BoardLayer, IPlayer>();
 
-            while (!Board.PlayersRanked())
+            while (!Board.PlayersRanked)
             {
                 outputProcessor.PlayerStatus(Board.CurrentPlayer);
 
-                if (Board.CurrentPlayer.CanPlay())
+                if (Board.CurrentPlayer.CanPlay)
                 {
                     Board.CurrentPlayer.RollDice(Board.Dice);
                     outputProcessor.PrintDiceValue(Board.Dice.CurrentValue.Value);
                     MovePieceIfPossible();
                 }
                 
-                if (!Board.CurrentPlayer.CanPlay() && !ranked.ContainsKey(Board.CurrentPlayer.Layer))
+                if (!Board.CurrentPlayer.CanPlay && !ranked.ContainsKey(Board.CurrentPlayer.Layer))
                 {
                     ranked[Board.CurrentPlayer.Layer] = Board.CurrentPlayer;
                 }
@@ -98,12 +97,12 @@ namespace LudoGame
                 Board.RemovePieceFromSpot(piece);
                 if (possibleSpot.HasValue)
                 {                    
-                    Board.CurrentPlayer.MovePiece(piece, possibleSpot.Value);
+                    Board.CurrentPlayer.TurnPiece(piece, possibleSpot.Value);
                     Board.AddPieceToSpot(piece);
                 }
                 else if (possibleHome.HasValue)
                 {
-                    Board.CurrentPlayer.MovePiece(piece, possibleHome.Value);
+                    Board.CurrentPlayer.TurnPiece(piece, possibleHome.Value);
                 }
             }
 

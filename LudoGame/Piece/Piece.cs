@@ -25,6 +25,14 @@ namespace LudoGame
             EndingSpot = GlobalConstant.EndingSpot[(int)layer];
         }
 
+        public bool IsLocked
+        {
+            get
+            {
+                return CurrentSpot != null || CurrentHome != null || !IsMatured;
+            }
+        }
+
         public void Move(SquareSpot destSpot) => CurrentSpot = destSpot;        
 
         public void Move(Home destHome)
@@ -42,8 +50,6 @@ namespace LudoGame
             CurrentHome = null;
             IsMatured = true;
         }
-
-        public bool IsLocked() => CurrentSpot != null || CurrentHome != null || !IsMatured;        
 
         public void Kill()
         {

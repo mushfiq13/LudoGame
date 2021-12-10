@@ -20,6 +20,14 @@ namespace LudoGame
             PiecesAtSquare = new Dictionary<SquareSpot, List<IPiece>>();
         }
 
+        public bool PlayersRanked
+        {
+            get
+            {
+                return !(Players.Where(player => player.CanPlay == true).Any());
+            }
+        }
+
         public void AddPlayer(string name, BoardLayer layer) => Players.Add(new Player(name, layer, AddPieces(layer)));
 
         private IList<IPiece> AddPieces(BoardLayer layer)
@@ -116,8 +124,6 @@ namespace LudoGame
         {
             if (piece.CurrentSpot.HasValue)
                 PiecesAtSquare.Remove(piece.CurrentSpot.Value, piece);
-        }
-
-        public bool PlayersRanked() => !(Players.Where(player => player.CanPlay() == true).Any());
+        }               
     }
 }

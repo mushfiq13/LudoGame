@@ -10,14 +10,13 @@ namespace LudoGame
     {
         string Name { get; }
         IList<IPiece> Pieces { get; }
-        BoardLayer Layer { get; set; }
+        BoardLayer Layer { get; }
+        bool IsAllPiecesMatured { get; }
+        bool CanPlay { get; }
 
-        void RollDice(IDice dice);
-        bool IsAllPiecesMatured();
-
-        bool CanPlay();
+        void RollDice(IDice dice);                
         
-        void MovePiece(IPiece piece, SquareSpot destSpot);
-        void MovePiece(IPiece piece, Home destHome);
+        void TurnPiece(IPiece piece, SquareSpot destSpot);
+        void TurnPiece(IPiece piece, Home destHome);
     }
 }

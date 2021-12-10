@@ -12,6 +12,7 @@ namespace LudoGame
         IList<IPlayer> Players { get; }
         IPlayer? CurrentPlayer { get; set; }
         IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; }
+        bool PlayersRanked { get; }
 
         void AddPlayer(string name, BoardLayer layer);        
 
@@ -24,8 +25,6 @@ namespace LudoGame
         void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot);
 
         void RemovePieceFromSpot(IPiece piece);
-        void AddPieceToSpot(IPiece piece);
-
-        bool PlayersRanked();
+        void AddPieceToSpot(IPiece piece);        
     }
 }
