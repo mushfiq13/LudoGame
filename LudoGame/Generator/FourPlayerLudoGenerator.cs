@@ -231,13 +231,7 @@ namespace LudoGame
 
         private bool ValidatePath(SquareSpot from, Home to, IPiece piece)
         {
-            for (var curSpot = (int)from + 1; curSpot <= (int)piece.EndingSpot; curSpot = (curSpot + 1) % GlobalConstant.MaxSpot)
-            {
-                if (!Board.CanPiecePassTheSpot((SquareSpot)curSpot, piece))
-                    return false;
-            }
-
-            return true;
-        }        
+            return ValidatePath(from, (SquareSpot)((int)piece.EndingSpot + 1), piece);
+        }
     }
 }
