@@ -21,8 +21,8 @@ namespace LudoGame
         IList<IPiece>? GetSameTypeOfPieces(SquareSpot selectedSpot, Color pieceType);
         bool CanPiecePassTheSpot(SquareSpot selectedSpot, IPiece piece);
 
-        void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot);
-        void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot);
+        void KillOthersIfPossible(IPiece movingPiece, SquareSpot othersSpot);
+        void KillOthersIfPossible((IPiece, IPiece) movingPieces, SquareSpot othersSpot);
 
         void RemovePieceFromSpot(IPiece piece);
         void AddPieceToSpot(IPiece piece);        

@@ -40,8 +40,12 @@ namespace LudoGame
                 if (Board.CurrentPlayer.CanPlay)
                 {
                     Board.CurrentPlayer.RollDice(Board.Dice);
+
+                    if (!Board.Dice.CurrentValue.HasValue)
+                        throw new InvalidOperationException("Dice has no value.");
+
                     outputProcessor.PrintDiceValue(Board.Dice.CurrentValue.Value);
-                    MovePieceIfPossible();
+                    MovePieceIfPossible(Board.CurrentPlayer, Board.Dice.CurrentValue.Value);
                 }
                 
                 if (!Board.CurrentPlayer.CanPlay && !ranked.ContainsKey(Board.CurrentPlayer.Layer))
@@ -65,14 +69,9 @@ namespace LudoGame
             }
         }
 
-        private bool MovePieceIfPossible()
+        private bool MovePieceIfPossible(IPlayer currentPlayer, int diceValue)
         {
-            if (Board.CurrentPlayer == null || Board.Dice.CurrentValue == null)
-            {
-                return false;
-            }
-
-            var piecesNextPossiblePosition = GetPiecesNextPossiblePosition(Board.CurrentPlayer.Pieces, Board.Dice.CurrentValue.Value);             
+            var piecesNextPossiblePosition = GetPiecesNextPossiblePosition(currentPlayer.Pieces, diceValue);             
 
             if (!AnyPieceCanMove(piecesNextPossiblePosition))
             {
@@ -96,13 +95,13 @@ namespace LudoGame
             {
                 Board.RemovePieceFromSpot(piece);
                 if (possibleSpot.HasValue)
-                {                    
-                    Board.CurrentPlayer.TurnPiece(piece, possibleSpot.Value);
+                {
+                    currentPlayer.TurnPiece(piece, possibleSpot.Value);
                     Board.AddPieceToSpot(piece);
                 }
                 else if (possibleHome.HasValue)
                 {
-                    Board.CurrentPlayer.TurnPiece(piece, possibleHome.Value);
+                    currentPlayer.TurnPiece(piece, possibleHome.Value);
                 }
             }
 

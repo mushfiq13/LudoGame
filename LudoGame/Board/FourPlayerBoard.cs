@@ -11,14 +11,7 @@ namespace LudoGame
         public IDice Dice { get; private set; }
         public IList<IPlayer> Players { get; private set; }
         public IPlayer? CurrentPlayer { get; set; }
-        public IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; private set; }
-
-        public FourPlayerBoard()
-        {
-            Dice = new SixSidedDice();
-            Players = new List<IPlayer>();
-            PiecesAtSquare = new Dictionary<SquareSpot, List<IPiece>>();
-        }
+        public IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare { get; private set; }        
 
         public bool PlayersRanked
         {
@@ -26,6 +19,13 @@ namespace LudoGame
             {
                 return !(Players.Where(player => player.CanPlay == true).Any());
             }
+        }
+
+        public FourPlayerBoard()
+        {
+            Dice = new SixSidedDice();
+            Players = new List<IPlayer>();
+            PiecesAtSquare = new Dictionary<SquareSpot, List<IPiece>>();
         }
 
         public void AddPlayer(string name, BoardLayer layer) => Players.Add(new Player(name, layer, AddPieces(layer)));
@@ -87,21 +87,21 @@ namespace LudoGame
         public bool CanPiecePassTheSpot(SquareSpot selectedSpot, IPiece piece) =>
             IsSafeSpot(selectedSpot) || !GetPieces(selectedSpot, piece.Color, pieces => pieces.Count() == 2).Any();
 
-        public void KillOthersIfPossible(IPiece selectedPiece, SquareSpot othersSpot)
+        public void KillOthersIfPossible(IPiece movingPiece, SquareSpot othersSpot)
         {
-            if (!selectedPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;
-            Kill(GetPieces(othersSpot, selectedPiece.Color, piece => piece.Count() != 2),
+            if (!movingPiece.CurrentSpot.HasValue || IsSafeSpot(othersSpot)) return;
+            Kill(GetPieces(othersSpot, movingPiece.Color, piece => piece.Count() != 2),
                 othersSpot);
         }
 
-        public void KillOthersIfPossible((IPiece, IPiece) selectedPieces, SquareSpot othersSpot)
+        public void KillOthersIfPossible((IPiece, IPiece) movingPieces, SquareSpot othersSpot)
         {
             if (IsSafeSpot(othersSpot)) return;
-            if (selectedPieces.Item1.Color != selectedPieces.Item2.Color) return;
-            if (selectedPieces.Item1.CurrentSpot != selectedPieces.Item2.CurrentSpot) return;
-            if (!selectedPieces.Item1.CurrentSpot.HasValue || IsSafeSpot(selectedPieces.Item1.CurrentSpot.Value)) return;
+            if (movingPieces.Item1.Color != movingPieces.Item2.Color) return;
+            if (movingPieces.Item1.CurrentSpot != movingPieces.Item2.CurrentSpot) return;
+            if (!movingPieces.Item1.CurrentSpot.HasValue || IsSafeSpot(movingPieces.Item1.CurrentSpot.Value)) return;
 
-            Kill(GetPieces(othersSpot, selectedPieces.Item1.Color, piece => piece.Count() == 2),
+            Kill(GetPieces(othersSpot, movingPieces.Item1.Color, piece => piece.Count() == 2),
                 othersSpot);
         }
 

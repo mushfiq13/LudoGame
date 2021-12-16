@@ -16,15 +16,6 @@ namespace LudoGame
         public SquareSpot StartingSpot { get; private set; }
         public SquareSpot EndingSpot { get; private set; }
 
-        public Piece(PieceNumber id, BoardLayer layer)
-        {
-            Id = id;
-            Color = (Color)(int)layer;
-            IsMatured = false;
-            StartingSpot = GlobalConstant.StartingSpot[(int)layer];
-            EndingSpot = GlobalConstant.EndingSpot[(int)layer];
-        }
-
         public bool IsLocked
         {
             get
@@ -32,6 +23,15 @@ namespace LudoGame
                 return CurrentSpot != null || CurrentHome != null || !IsMatured;
             }
         }
+
+        public Piece(PieceNumber id, BoardLayer layer)
+        {
+            Id = id;
+            Color = (Color)(int)layer;
+            IsMatured = false;
+            StartingSpot = GlobalConstant.StartingSpot[(int)layer];
+            EndingSpot = GlobalConstant.EndingSpot[(int)layer];
+        }        
 
         public void Move(SquareSpot destSpot) => CurrentSpot = destSpot;        
 
@@ -62,7 +62,7 @@ namespace LudoGame
         {
             if (!IsMatured && !CurrentSpot.HasValue && !CurrentHome.HasValue)
             {
-                return diceValue == 6 ? (StartingSpot, null) : (null, null);
+                return diceValue == GlobalConstant.MaxDiceSide ? (StartingSpot, null) : (null, null);
             }
 
             if (!CurrentSpot.HasValue && CurrentHome.HasValue)
@@ -91,7 +91,7 @@ namespace LudoGame
                 return (int)CurrentSpot + diceValue <= (int)EndingSpot;
             }
 
-            return ((int)CurrentSpot > (int)EndingSpot || (int)CurrentSpot + diceValue <= (int)EndingSpot);
+            return (int)CurrentSpot > (int)EndingSpot || (int)CurrentSpot + diceValue <= (int)EndingSpot;
         }
     }
 }

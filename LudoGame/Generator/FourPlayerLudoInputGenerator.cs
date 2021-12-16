@@ -24,8 +24,7 @@ namespace LudoGame
             //    option = -1;
             //}
             //return option;
-            var o = _random.Next(1, maxOptions + 1);
-            return o;
+            return _random.Next(1, maxOptions + 1);
         }
     }
 }

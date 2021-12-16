@@ -23,11 +23,11 @@ namespace LudoGame
                 PrintAsOrdinalNumber((int)piece.Id);
                 if (piece.CurrentSpot.HasValue)
                 {
-                    Console.WriteLine($" Piece at {piece.CurrentSpot.Value} square");
+                    Console.WriteLine($" Piece at {(int)piece.CurrentSpot.Value} square");
                 }
                 else if (piece.CurrentHome.HasValue)
                 {
-                    Console.WriteLine($" Piece at {piece.CurrentHome.Value} home-column");
+                    Console.WriteLine($" Piece at {(int)piece.CurrentHome.Value} home-column");
                 }
                 else if (piece.IsMatured)
                 {
@@ -44,17 +44,21 @@ namespace LudoGame
         {
             Console.Write($"{string.Join(", ", pieceId)} piece(s) can ");
 
-            if (value != null && value.GetType() == typeof(SquareSpot))
+            if (value == null)
+            {
+                Console.WriteLine($"not move!");
+            }
+            else if (value.GetType() == typeof(SquareSpot))
             {
                 Console.WriteLine($"be placed at {value} square");
             }
-            else if (value != null && value.GetType() == typeof(Home))
+            else if (value.GetType() == typeof(Home))
             {
                 Console.WriteLine($"be placed at {value} home-column");
             }
             else
             {
-                Console.WriteLine($"not move!");
+                throw new InvalidOperationException("Given piece(s) are not valid.");
             }
         }
 
@@ -64,16 +68,16 @@ namespace LudoGame
             {
                 case 1:
                     Console.Write("1st");
-                    break;
+                    return;
                 case 2:
                     Console.Write("2nd");
-                    break;
+                    return;
                 case 3:
                     Console.Write("3rd");
-                    break;
+                    return;
                 case 4:
                     Console.Write("4th");
-                    break;                
+                    return;
             }
         }
 

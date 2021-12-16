@@ -1,9 +1,9 @@
-LudoGame
-========
+# LudoGame
 
 Requirements:
 
-1. At least 2 Players required.● Each player is assigned 4 pieces of particular color.
+1. At least 2 Players required.
+1. Each player is assigned 4 pieces of particular color.
 1. Dice has 6 or more sides.
 1. Each player can roll dice when his/her turn comes.
 1. If the player gets 6 (for a six-sided dice), then player can unlock a piece if it is inside layer.
