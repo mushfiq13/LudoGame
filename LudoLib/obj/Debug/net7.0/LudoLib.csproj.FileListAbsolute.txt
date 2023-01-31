@@ -1,0 +1,12 @@
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\LudoLib.csproj.AssemblyReference.cache
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\LudoLib.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\LudoLib.AssemblyInfoInputs.cache
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\LudoLib.AssemblyInfo.cs
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\LudoLib.csproj.CoreCompileInputs.cache
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\bin\Debug\net7.0\LudoLib.deps.json
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\bin\Debug\net7.0\LudoLib.dll
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\bin\Debug\net7.0\LudoLib.pdb
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\LudoLib.dll
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\refint\LudoLib.dll
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\LudoLib.pdb
+C:\Users\mushf\OneDrive\Documents\LudoGame\LudoLib\obj\Debug\net7.0\ref\LudoLib.dll

@@ -2,8 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
 	  <nullable>enable</nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LudoLib\LudoLib.csproj" />
+  </ItemGroup>
 
 </Project>

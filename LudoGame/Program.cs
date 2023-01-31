@@ -1,20 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using LudoLib.Enums;
+using LudoLib.Utilities;
 
 namespace LudoGame
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            IBoard fourPlayerBoard = new FourPlayerBoard();
-            fourPlayerBoard.AddPlayer("A", BoardLayer.First);
-            fourPlayerBoard.AddPlayer("B", BoardLayer.Second);
-            fourPlayerBoard.AddPlayer("C", BoardLayer.Third);
-            fourPlayerBoard.AddPlayer("D", BoardLayer.Fourth);
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			IBoard fourPlayerBoard = Factory.CreateFourPlayerBoard();
+			fourPlayerBoard.AddPlayer("A", BoardLayer.First);
+			fourPlayerBoard.AddPlayer("B", BoardLayer.Second);
+			fourPlayerBoard.AddPlayer("C", BoardLayer.Third);
+			fourPlayerBoard.AddPlayer("D", BoardLayer.Fourth);
 
-            IGenerator generator = new FourPlayerLudoGenerator(fourPlayerBoard);            
-            generator.PlayGame();
-        }                              
-    }
+			IGenerator generator = Factory.CreateFourPlayerLudoGenerator(fourPlayerBoard);
+			generator.PlayGame();
+		}
+	}
 }

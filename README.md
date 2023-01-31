@@ -15,3 +15,7 @@ Requirements:
 1. When a player moves his/her piece, it progresses the amount of steps of the number.
 1. When a piece will be placed at home-triangle, it gets mature.
 1. When a player pieces will be at home-triangle, he will be ranked.
+
+## Folder Structure
+
+### Utilities
