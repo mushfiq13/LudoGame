@@ -13,17 +13,17 @@ namespace LudoGame
 			return new FourPlayerBoard(CreateSixSidedDice(), CreatePlayersCollection(), PiecesAtSquare());
 		}
 
-		public static IDice CreateSixSidedDice()
+		private static IDice CreateSixSidedDice()
 		{
 			return new SixSidedDice(new Random(DateTime.UtcNow.Millisecond));
 		}
 
-		public static IList<IPlayer> CreatePlayersCollection()
+		private static IList<IPlayer> CreatePlayersCollection()
 		{
 			return new List<IPlayer>();
 		}
 
-		public static IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare()
+		private static IDictionary<SquareSpot, List<IPiece>> PiecesAtSquare()
 		{
 			return new Dictionary<SquareSpot, List<IPiece>>();
 		}
@@ -34,11 +34,6 @@ namespace LudoGame
 
 			return new FourPlayerLudoGenerator(board, CreateFourPlayerOutputGenerator(), CreateFourPlayerInputGenerator());
 		}
-
-		//public static IBoard CreateBoard()
-		//{
-		//	return 
-		//}
 
 		private static IFourPlayerOutputGenerator CreateFourPlayerOutputGenerator()
 		{
