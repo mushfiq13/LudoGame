@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LudoGame", "LudoGame.csproj", "{87CC5F2A-3607-4C6E-A3F4-BE2468B55AD5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LudoLib", "..\LudoLib\LudoLib.csproj", "{E09171A2-141E-4018-B69C-F86C46D8D7A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LudoLib", "..\LudoLib\LudoLib.csproj", "{E09171A2-141E-4018-B69C-F86C46D8D7A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
