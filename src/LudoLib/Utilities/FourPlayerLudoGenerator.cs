@@ -32,7 +32,7 @@ namespace LudoLib.Utilities
 
 			var ranked = new Dictionary<BoardLayer, IPlayer>();
 
-			while (!_board.PlayersRanked)
+			while (_board.PlayersRanked is false)
 			{
 				_outputProcessor.PlayerStatus(_board.CurrentPlayer);
 
@@ -41,7 +41,7 @@ namespace LudoLib.Utilities
 					_board.CurrentPlayer.RollDice(_board.Dice);
 
 					if (!_board.Dice.CurrentValue.HasValue)
-						throw new InvalidOperationException("Dice has no value.");
+						throw new InvalidOperationException("Dice has no value");
 
 					_outputProcessor.PrintDiceValue(_board.Dice.CurrentValue.Value);
 					MovePieceIfPossible(_board.CurrentPlayer, _board.Dice.CurrentValue.Value);
