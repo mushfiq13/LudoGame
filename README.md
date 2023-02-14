@@ -16,6 +16,10 @@ Requirements:
 1. When a piece will be placed at home-triangle, it gets mature.
 1. When a player pieces will be at home-triangle, he will be ranked.
 
-## Folder Structure
+## Settings
 
-### Utilities
+### appsettings.json
+
+> Right-click on json file -> Properties -> Copy to Output Directory (Copy Always)
+
+### Builder Setup
