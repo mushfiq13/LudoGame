@@ -5,7 +5,6 @@ namespace LudoLib.Utilities
 	public interface IPlayer
 	{
 		string Name { get; }
-		bool IsAllPiecesMatured { get; }
 		bool CanPlay { get; }
 
 		IList<IPiece> Pieces { get; }

@@ -107,7 +107,8 @@ namespace LudoLib.Utilities
 				othersSpot);
 		}
 
-		public void KillOthersIfPossible((IPiece, IPiece) movingPieces, SquareSpot othersSpot)
+		public void KillOthersIfPossible(
+			(IPiece, IPiece) movingPieces, SquareSpot othersSpot)
 		{
 			if (IsSafeSpot(othersSpot)) return;
 			if (movingPieces.Item1.Color != movingPieces.Item2.Color) return;
